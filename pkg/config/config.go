@@ -7,11 +7,11 @@ import (
 )
 
 // LoadConfig reads configuration from file or environment variables.
-func Loadvariables(args ...interface{}) (variables *Variables, err error) {
+func Loadvariables(args ...string) (variables *Variables, err error) {
 	if len(args) > 0 {
-		viper.AddConfigPath(args[0].(string))
+		viper.AddConfigPath(args[0])
 		if len(args) > 1 {
-			viper.SetConfigName(args[1].(string))
+			viper.SetConfigName(args[1])
 			viper.SetConfigType("env")
 		}
 		err = viper.ReadInConfig()

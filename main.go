@@ -8,7 +8,9 @@ import (
 
 func main() {
 	// load variables
-	variables, err := config.Loadvariables()
+	// extra vars (not needed when running in GitLab CI/CD)
+	args := []string{".", ".env"}
+	variables, err := config.Loadvariables(args...)
 	if err != nil {
 		log.Fatalf("Error loading variables: %s\n", err)
 	}
