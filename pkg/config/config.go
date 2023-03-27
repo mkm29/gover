@@ -20,6 +20,8 @@ func Loadvariables(args ...string) (variables *Variables, err error) {
 	if err != nil {
 		log.Fatalf("Can't load config file: %s\n", err)
 	}
-	err = viper.Unmarshal(&variables)
+	if err := viper.Unmarshal(&variables); err != nil {
+		log.Fatalf("Can't unmarshal config: %s\n", err)
+	}
 	return
 }

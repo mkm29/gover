@@ -24,10 +24,13 @@ This program is intended to run inside a CI/CD pipeline (in a container), but ca
 ./bin/gover version
 ```
 
-Example output: 
+Example output/versions: 
 
 ```bash
+# merge request to development branch
 0.1.0-development-alpha.1+55358
+# merge request to rc/* branch
 0.1.1-rc+55359
+# merge request to release branch (official release)
 v0.1.2
 ```
