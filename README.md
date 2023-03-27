@@ -39,3 +39,5 @@ Example output/versions:
 # merge request to release branch (official release)
 v0.1.2
 ```
+
+_Note_ that with how `MCS-COP` versions software (ie. `8.1.0`, `8.2.1`, etc.) this directly conflicts with [SemVer](https://semver.org). This needs to be addresses.
