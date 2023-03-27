@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"gover/pkg/config"
 	"log"
 	"strconv"
 )
@@ -44,7 +45,7 @@ func (v *Version) String() string {
 	return base
 }
 
-func GetVersion() string {
+func GetVersion(variables *config.Variables) string {
 	// version is in the format of vX.Y.Z
 	// we want to return X.Y.Z (and optionally -ADDOPTS)
 	env := make(map[string]string)
