@@ -1,6 +1,11 @@
-$ Gover
+# Gover
 
-Very simple Golang project that simply parses a `VERSION` file and returns the full version string. 
+```yaml
+Author: Mitch Murphy
+Date: 27 March 2023
+```
+
+Very simple Golang project that simply parses a `VERSION` file, incorporates any predefined Gitlab CI/CD variables and returns the full version string.  
 
 ## Structure
 
@@ -18,7 +23,7 @@ ADDOPTS=<additional_options>
 
 All relevant commands are listed and annotated in the [Makefile](Makefile).
 
-This program is intended to run inside a CI/CD pipeline (in a container), but can also be run locally. Here are the commands:
+This program is intended to run inside a CI/CD pipeline (in a container), but can also be run locally. Note that when running any pipeline in Gitlab, these [variables](https://docs.gitlab.com/ee/ci/variables/predefined_variables.html) are automatically added to any stage(kmage). Here are the commands:
 
 ```bash
 ./bin/gover version
