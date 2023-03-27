@@ -23,3 +23,11 @@ This program is intended to run inside a CI/CD pipeline (in a container), but ca
 ```bash
 ./bin/gover version
 ```
+
+Example output: 
+
+```bash
+0.1.0-development-alpha.1+55358
+0.1.1-rc+55359
+v0.1.2
+```

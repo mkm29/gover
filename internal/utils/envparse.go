@@ -45,7 +45,7 @@ func (v *Version) String() string {
 	base := fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
 	// split MergeRequestTargetBranchName on /
 	targetBranch := strings.Split(strings.ToLower(variables.MergeRequestTargetBranchName), "/")[0]
-	log.Printf("Target branch: %s\n", targetBranch)
+	// log.Printf("Target branch: %s\n", targetBranch)
 	// 2. if on defalt or release branch return version string
 	if targetBranch == variables.DefaultBranch || targetBranch == "release" {
 		return fmt.Sprintf("v%s", base)
