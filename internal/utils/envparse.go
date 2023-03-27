@@ -7,6 +7,7 @@ import (
 	"gover/pkg/config"
 	"log"
 	"strconv"
+	"strings"
 )
 
 // ParseError is returned whenever the Parse function encounters an error. It
@@ -23,6 +24,8 @@ type Version struct {
 	Additional string
 }
 
+var variables *config.Variables
+
 func (e *ParseError) Error() string {
 	if e.Line > 0 {
 		return fmt.Sprintf("error on line %d: %v", e.Line, e.Err)
@@ -38,14 +41,29 @@ func parseError(line int, err error) error {
 }
 
 func (v *Version) String() string {
+	// 1. construct base version string
 	base := fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
+	// split MergeRequestTargetBranchName on /
+	targetBranch := strings.Split(strings.ToLower(variables.MergeRequestTargetBranchName), "/")[0]
+	log.Printf("Target branch: %s\n", targetBranch)
+	// 2. if on defalt or release branch return version string
+	if targetBranch == variables.DefaultBranch || targetBranch == "release" {
+		return fmt.Sprintf("v%s", base)
+	} else {
+		// 3. if target branch is not default branch, append branch to base
+		base = fmt.Sprintf("%s-%s", base, targetBranch)
+	}
+	// 4. check if we need to append additional options
 	if v.Additional != "" {
 		base = fmt.Sprintf("%s-%s", base, v.Additional)
 	}
-	return base
+	// 5. Add build number
+	return fmt.Sprintf("%s+%d", base, variables.PipelineIid)
 }
 
-func GetVersion(variables *config.Variables) string {
+func GetVersion(v *config.Variables) string {
+	// set variables
+	variables = v
 	// version is in the format of vX.Y.Z
 	// we want to return X.Y.Z (and optionally -ADDOPTS)
 	env := make(map[string]string)
