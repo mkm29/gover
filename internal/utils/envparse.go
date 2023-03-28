@@ -44,16 +44,23 @@ func (v *Version) String() string {
 	// 1. construct base version string
 	base := fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
 	// split MergeRequestTargetBranchName on /
-	targetBranch := strings.Split(strings.ToLower(cfg.Variables.MergeRequestTargetBranchName), "/")[0]
+	targetBranch := strings.Split(strings.ToLower(cfg.Variables.MergeRequestTargetBranchName), "/")
+	// TODO: handle error when unable to split?
+	var tb string
+	if len(targetBranch) == 1 {
+		tb = targetBranch[0]
+	} else if len(targetBranch) == 2 {
+		tb = fmt.Sprintf("%s-%s", targetBranch[0], targetBranch[1])
+	}
 	if cfg.Debug {
 		log.Printf("targetBranch: %s\n", targetBranch)
 	}
 	// 2. if on defalt or release branch return version string
-	if targetBranch == cfg.Variables.DefaultBranch || targetBranch == "release" {
+	if tb == cfg.Variables.DefaultBranch || strings.Contains(tb, "release") {
 		return fmt.Sprintf("v%s", base)
 	} else {
 		// 3. if target branch is not default branch, append branch to base
-		base = fmt.Sprintf("%s-%s", base, targetBranch)
+		base = fmt.Sprintf("%s-%s", base, tb)
 	}
 	// 4. check if we need to append additional options
 	if v.Additional != "" {
@@ -65,10 +72,10 @@ func (v *Version) String() string {
 
 func GetVersion(c *config.Config) string {
 	// set variables
+	cfg = c
 	if cfg.Debug {
 		log.Println("GetVersion | Setting variables")
 	}
-	cfg = c
 	// version is in the format of vX.Y.Z
 	// we want to return X.Y.Z (and optionally -ADDOPTS)
 	env := make(map[string]string)
@@ -95,7 +102,6 @@ func GetVersion(c *config.Config) string {
 		i++
 		k, v, err := parseLine(scanner.Bytes())
 		if err != nil {
-			log.Println(parseError(i, err))
 			return vr.String()
 		}
 
