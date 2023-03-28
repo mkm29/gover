@@ -2,8 +2,14 @@
 
 ```yaml
 Author: Mitch Murphy
-Date: 27 March 2023
+Date: 28 March 2023
 ```
+
+![gover gopher](media/gopher-gover.jpg)
+
+_Generated using Midjourney_
+
+## Description
 
 Very simple Golang project that simply parses a `VERSION` file, incorporates any predefined Gitlab CI/CD variables and returns the full version string.  
 
