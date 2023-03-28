@@ -30,9 +30,9 @@ FROM nexus.ssf.sclzdev.net/ironbank/google/distroless/base:nonroot
 WORKDIR /
 COPY --from=builder /workspace/gover .
 # Gitlab CI needs a shell, super secure
-COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc --chown=65532:65532 /bin/sh /bin/sh
+# COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc /bin/sh /bin/sh
 USER 65532:65532
 
-ENTRYPOINT ["/gover"]
+# ENTRYPOINT ["/gover"]
 
-CMD ["version"]
+# CMD ["version"]

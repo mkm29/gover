@@ -39,7 +39,11 @@ include:
 generateVersion:
   stage: generateVersion
   image: ${BASE_REGISTRY}/ssf-tools/gover:latest
-  script: gover version > SSFVERSION
+  entrypoint:
+  - gover
+  - version
+  - ">"
+  - SSFVERSION
   artifacts:
     paths:
       - SSFVERSION
