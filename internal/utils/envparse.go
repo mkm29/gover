@@ -81,15 +81,15 @@ func GetVersion(c *config.Config) string {
 	env := make(map[string]string)
 	vr := Version{
 		Major: 0,
-		Minor: 1,
+		Minor: 0,
 		Patch: 0,
 	}
 
 	// read VERSION file
 	r, err := ReadFile(fmt.Sprintf("%s/%s", GetProjectRoot("./"), "VERSION"))
 	if err != nil {
-		log.Fatalln(err)
-		return vr.String()
+		return fmt.Sprintf("0.0.0+%d", cfg.Variables.PipelineIid)
+		// return vr.String()
 	}
 
 	scanner := bufio.NewScanner(bytes.NewReader(r))

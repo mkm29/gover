@@ -68,7 +68,7 @@ pushBinNexus:
 # this should be explicitly defined as dockerBuild and version_check should be its own stage 
 build:
   before_script:
-  - export Version=$(cat SSFVERSION) 
+  - export Version=$(cat SSFVERSION | cut -d'+' -f1') 
   extends: .docker_build
 
 createGitRelease:
