@@ -9,11 +9,16 @@ import (
 func main() {
 	// load variables
 	// extra vars (not needed when running in GitLab CI/CD)
-	args := []string{".", ".env"}
-	variables, err := config.Loadvariables(args...)
+	var args []string
+	// args := []string{".", "config.env"}
+	cfg, err := config.LoadConfig(args...)
 	if err != nil {
 		log.Fatalf("Error loading variables: %s\n", err)
 	}
-	cmd := cmd.NewRootCmd(variables)
+	// is cfg nil?
+	if cfg == nil {
+		log.Fatalf("Config is nil")
+	}
+	cmd := cmd.NewRootCmd(cfg)
 	cmd.Execute()
 }

@@ -5,7 +5,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.1] - 2023-05-31
+
+## [0.1.0] - 2023-03-28
 
 ### Added
 
@@ -19,4 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Setup basic CLI using Cobra.
 - Setup basic configuration management using Viper.
 - Added functionality to parse VERSION file.
-- Added a variadic `[]strings` (optiona) argument to `LoadVariables`
+- Created `Config` struct in config package to hold:
+  - Debug (`bool`)
+  - Variables (`config.Cariables{}`)
+  - requiredVars (`map[string]string`)
+- Set logic for constructing version string:
+  - First, parse VERSION file to get `MAJOR`, `MINOR`, `PATCH` and (optionally) `ADDOPTS`
+  - Split `MergeRequestTargetBranch` string by `/`. Eg. `rc/8.2.0` -> `["rc", "8.2.0"]` and `development` -> `["development"]`. Join by `-`, call this `tb`.
+  - Final version string is: `<MAJOR>.<MINOR>.<PATCH>-<tb>(-<ADDOPTS>)+<PipelineIid>`

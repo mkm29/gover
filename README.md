@@ -35,7 +35,7 @@ Example output/versions:
 # merge request to development branch
 0.1.0-development-alpha.1+55358
 # merge request to rc/* branch
-0.1.1-rc+55359
+0.1.1-rc-8.2.0+55359
 # merge request to release branch (official release)
 v0.1.2
 ```
