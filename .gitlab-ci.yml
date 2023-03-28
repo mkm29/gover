@@ -38,12 +38,13 @@ include:
 
 generateVersion:
   stage: generateVersion
-  image: ${BASE_REGISTRY}/ssf-tools/gover:latest
-  entrypoint:
-  - gover
-  - version
-  - ">"
-  - SSFVERSION
+  image: 
+    name: ${BASE_REGISTRY}/ssf-tools/gover:latest
+    entrypoint:
+    - gover
+    - version
+    - ">"
+    - SSFVERSION
   script:
     - env > .env
   artifacts:
