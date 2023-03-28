@@ -1,6 +1,7 @@
 variables: {}
 
 stages:
+  - generateVersion
   - buildBin
   - pushBinNexus
   - build
@@ -35,6 +36,14 @@ include:
 # releaseArtifact2nexus_script zips up all artifacts and only pushes one, this will not work
 # when you want to link to specific artifacts...
 
+generateVersion:
+  stage: generateVersion
+  image: ${BASE_REGISTRY}/ssf-tools/gover:latest
+  script: gover version > SSFVERSION
+  artifacts:
+    paths:
+      - SSFVERSION
+
 buildBin:
   stage: buildBin
   image: ${BASE_REGISTRY}/dockerhub/golang:1.20.2 
@@ -51,12 +60,15 @@ pushBinNexus:
   image: ${BASE_REGISTRY}/dockerhub/curlimages/curl:8.00.1
   script:
   - export REPO_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${Version}/${CI_PROJECT_NAME}-linux-amd64"
+  - export VERSION=$(cat SSFVERSION)
   - echo Pushing binary to Nexus $REPO_URL
   - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-linux-amd64 "${REPO_URL}" -f 
 
 # version_check happens in stage: build. This is very misleading, it also builds an OCI image, so
 # this should be explicitly defined as dockerBuild and version_check should be its own stage 
 build:
+  before_script:
+  - export Version=$(cat SSFVERSION) 
   extends: .docker_build
 
 createGitRelease:
