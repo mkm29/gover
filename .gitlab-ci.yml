@@ -44,6 +44,8 @@ generateVersion:
   - version
   - ">"
   - SSFVERSION
+  script:
+    - env > .env
   artifacts:
     paths:
       - SSFVERSION
