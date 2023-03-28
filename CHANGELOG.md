@@ -24,3 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Debug (`bool`)
   - Variables (`config.Cariables{}`)
   - requiredVars (`map[string]string`)
+- Set logic for constructing version string:
+  - First, parse VERSION file to get `MAJOR`, `MINOR`, `PATCH` and (optionally) `ADDOPTS`
+  - Split `MergeRequestTargetBranch` string by `/`. Eg. `rc/8.2.0` -> `["rc", "8.2.0"]` and `development` -> `["development"]`. Join by `-`, call this `tb`.
+  - Final version string is: `<MAJOR>.<MINOR>.<PATCH>-<tb>(-<ADDOPTS>)+<PipelineIid>`
