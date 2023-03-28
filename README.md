@@ -33,11 +33,12 @@ Example output/versions:
 
 ```bash
 # merge request to development branch
-0.1.0-development-alpha.1+55358
+0.1.0-development+55358
+0.1.1-development-alpha.1+55359
 # merge request to rc/* branch
-0.1.1-rc-8.2.0+55359
+0.1.2-rc-8.2.0+55360
 # merge request to release branch (official release)
-v0.1.2
+v0.1.3
 ```
 
 _Note_ that with how `MCS-COP` versions software (ie. `8.1.0`, `8.2.1`, etc.) this directly conflicts with [SemVer](https://semver.org). This needs to be addresses.
