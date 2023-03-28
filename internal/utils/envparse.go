@@ -24,7 +24,7 @@ type Version struct {
 	Additional string
 }
 
-var variables *config.Variables
+var cfg *config.Config
 
 func (e *ParseError) Error() string {
 	if e.Line > 0 {
@@ -44,11 +44,12 @@ func (v *Version) String() string {
 	// 1. construct base version string
 	base := fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
 	// split MergeRequestTargetBranchName on /
-	targetBranch := strings.Split(strings.ToLower(variables.MergeRequestTargetBranchName), "/")[0]
-	log.Printf("tagetNranche: %s\n", targetBranch)
-	// log.Printf("Target branch: %s\n", targetBranch)
+	targetBranch := strings.Split(strings.ToLower(cfg.Variables.MergeRequestTargetBranchName), "/")[0]
+	if cfg.Debug {
+		log.Printf("targetBranch: %s\n", targetBranch)
+	}
 	// 2. if on defalt or release branch return version string
-	if targetBranch == variables.DefaultBranch || targetBranch == "release" {
+	if targetBranch == cfg.Variables.DefaultBranch || targetBranch == "release" {
 		return fmt.Sprintf("v%s", base)
 	} else {
 		// 3. if target branch is not default branch, append branch to base
@@ -59,12 +60,15 @@ func (v *Version) String() string {
 		base = fmt.Sprintf("%s-%s", base, v.Additional)
 	}
 	// 5. Add build number
-	return fmt.Sprintf("%s+%d", base, variables.PipelineIid)
+	return fmt.Sprintf("%s+%d", base, cfg.Variables.PipelineIid)
 }
 
-func GetVersion(v *config.Variables) string {
+func GetVersion(c *config.Config) string {
 	// set variables
-	variables = v
+	if cfg.Debug {
+		log.Println("GetVersion | Setting variables")
+	}
+	cfg = c
 	// version is in the format of vX.Y.Z
 	// we want to return X.Y.Z (and optionally -ADDOPTS)
 	env := make(map[string]string)
@@ -135,8 +139,7 @@ func parseLine(line []byte) ([]byte, []byte, error) {
 		return nil, nil, fmt.Errorf("no equals sign found")
 	}
 
-	// Split the line into two parts
-	// split line by =
+	// Split the line into two parts by = sign
 	kv := bytes.Split(line, []byte("="))
 	k := bytes.TrimSpace(kv[0])
 	v := bytes.TrimSpace(kv[1])
