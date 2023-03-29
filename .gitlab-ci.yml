@@ -63,7 +63,7 @@ pushBinNexus:
   image: ${BASE_REGISTRY}/dockerhub/curlimages/curl:8.00.1
   script:
   - export REPO_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${Version}/${CI_PROJECT_NAME}-linux-amd64"
-  - export VERSION=$(cat SSFVERSION)
+  - export VERSION=$(cat _version)
   - echo Pushing binary to Nexus $REPO_URL
   - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-linux-amd64 "${REPO_URL}" -f 
 
@@ -71,7 +71,7 @@ pushBinNexus:
 # this should be explicitly defined as dockerBuild and version_check should be its own stage 
 build:
   before_script:
-  - export Version=$(cat SSFVERSION | cut -d'+' -f1' | tr + -) 
+  - export Version=$(cat _version | cut -d'+' -f1' | tr + -) 
   # the directory structure in Nexus for storing Docker iamges does not follow standards.
   # The tag should include any necessary information, do not make it convoluted.
   extends: .docker_build
