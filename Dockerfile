@@ -31,9 +31,10 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} go build -
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM nexus.ssf.sclzdev.net/ironbank/google/distroless/base:nonroot
 WORKDIR /
-COPY --from=builder /workspace/gover /usr/local/bin/gover
+COPY --from=builder /workspace/gover /bin/gover
 # Gitlab CI needs a shell, super secure
 COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc /bin/sh /bin/sh
+COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc /bin/cat /bin/cat
 USER 65532:65532
 
 # ENTRYPOINT ["/gover"]
