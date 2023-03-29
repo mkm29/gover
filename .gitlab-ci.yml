@@ -41,12 +41,15 @@ generateVersion:
   stage: generateVersion
   image: 
     name: ${BASE_REGISTRY}/ssf-tools/gover:${GOVER_VERSION}
+  variables:
+    MYUSER: testuser
   script:
-    - su myuser
-    - gover version > SSFVERSION
+    - useradd $MYUSER
+    - su $MYUSER
+    - gover version > _version
   artifacts:
     paths:
-      - SSFVERSION
+      - _version
 
 buildBin:
   stage: buildBin
