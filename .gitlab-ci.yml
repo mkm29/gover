@@ -41,6 +41,7 @@ generateVersion:
   stage: generateVersion
   image: 
     name: ${BASE_REGISTRY}/ssf-tools/gover:${GOVER_VERSION}
+    user: root
   script:
     - gover version > SSFVERSION
   artifacts:
