@@ -48,3 +48,28 @@ v0.1.3
 ```
 
 _Note_ that with how `MCS-COP` versions software (ie. `8.1.0`, `8.2.1`, etc.) this directly conflicts with [SemVer](https://semver.org). This needs to be addresses.
+
+## Docker
+
+### Build
+
+For non amd64 architectures (eg. Apple Silicon), Use buildkit.
+
+```bash
+OS=linux # `uname -s | tr A-Z a-z`
+ARCH=amd64 # `uname -m`
+DOCKERFILE=Dockerfile
+VERSION=0.1.2-development-alpha.2
+
+if [ $ARCH == "amd64" ]; then
+    docker build -t nexus.ssf.sclzdev.net/ssf-tools/gover:$VERSION \
+        --build-arg=TARGETOS=$OS --build-arg=TARGETARCH=$ARCH \
+        -f $DOCKERFILE .
+    docker push nexus.ssf.sclzdev.net/ssf-tools/gover:$VERSION
+else
+    docker buildx build --platform "${OS}/${ARCH}" \
+        --build-arg=TARGETOS=$OS --build-arg=TARGETARCH=$ARCH \
+        -f $DOCKERFILE --push \
+        -t "nexus.ssf.sclzdev.net/ssf-tools/gover:$VERSION" .
+fi
+```

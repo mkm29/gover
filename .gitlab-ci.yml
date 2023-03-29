@@ -1,4 +1,5 @@
-variables: {}
+variables:
+  GOVER_VERSION: 0.1.2-development-alpha.2
 
 stages:
   - generateVersion
@@ -39,7 +40,7 @@ include:
 generateVersion:
   stage: generateVersion
   image: 
-    name: ${BASE_REGISTRY}/ssf-tools/gover:latest
+    name: ${BASE_REGISTRY}/ssf-tools/gover:${GOVER_VERSION}
     entrypoint:
     - gover
     - version
@@ -75,7 +76,9 @@ pushBinNexus:
 # this should be explicitly defined as dockerBuild and version_check should be its own stage 
 build:
   before_script:
-  - export Version=$(cat SSFVERSION | cut -d'+' -f1') 
+  - export Version=$(cat SSFVERSION | cut -d'+' -f1' | tr + -) 
+  # the directory structure in Nexus for storing Docker iamges does not follow standards.
+  # The tag should include any necessary information, do not make it convoluted.
   extends: .docker_build
 
 createGitRelease:

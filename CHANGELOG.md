@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### fixed
 
 - If `VERSION` file does not exists, return `0.0.0+<PipelineIid>`
+- Added Docker instructions for building on Apple Silicon (enable multiplatform builds).
 
 ## [0.1.0-alpha.1] - 2023-03-27
 

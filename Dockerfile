@@ -1,7 +1,7 @@
 # Build the manager binary
 ARG BASE_REGISTRY=nexus.ssf.sclzdev.net/ironbank/google
-FROM nexus.ssf.sclzdev.net/dockerhub/golang:1.20.2 as builder
-#nexus.ssf.sclzdev.net/ironbank/google/golang/golang-1.20:1.20.0 as builder
+# FROM nexus.ssf.sclzdev.net/dockerhub/golang:1.20.2 as builder
+FROM nexus.ssf.sclzdev.net/ironbank/google/golang/golang-1.20:1.20.0 as builder
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -9,7 +9,10 @@ WORKDIR /workspace
 # Copy the Go Modules manifests
 COPY go.mod go.mod
 COPY go.sum go.sum
-RUN chmod 777 -R /workspace
+
+# This only needs to be done when building on Gitlab CI
+# RUN chmod +w -R /workspace
+
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
