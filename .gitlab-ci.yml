@@ -42,9 +42,9 @@ generateVersion:
   image: 
     name: ${BASE_REGISTRY}/ssf-tools/gover:${GOVER_VERSION}
     entrypoint:
-      - sh -c
+      - sh
   script:
-    - gover version
+    - -c /bin/gover version > SSFVERSION
   artifacts:
     paths:
       - SSFVERSION
