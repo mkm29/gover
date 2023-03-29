@@ -3,12 +3,12 @@ variables:
 
 stages:
   - generateVersion
-  # - buildBin
-  # - pushBinNexus
-  # - build
-  # - createGitRelease
-  # - security_scan
-  # - test
+  - buildBin
+  - pushBinNexus
+  - build
+  - createGitRelease
+  - security_scan
+  - test
 include:
   - project: "SSF/SSF-Tools/ci-templates"
     ref: v0.0.8
@@ -47,80 +47,78 @@ generateVersion:
   script:
     - gover version > SSFVERSION
     - cat SSFVERSION
-  #     - ">"
-  #     - SSFVERSION
-  # artifacts:
-  #   paths:
-  #     - SSFVERSION
+  artifacts:
+    paths:
+      - SSFVERSION
 
-# buildBin:
-#   stage: buildBin
-#   image: ${BASE_REGISTRY}/dockerhub/golang:1.20.2 
-#   script:
-#   - echo Building linux/amd64 binary
-#   - GOOS=linux GOARCH=amd64 go build -o bin/${CI_PROJECT_NAME}-linux-amd64 main.go
-#   artifacts:
-#     paths:
-#     - bin/${CI_PROJECT_NAME}-linux-amd64
-#     expire_in: 1 day
+buildBin:
+  stage: buildBin
+  image: ${BASE_REGISTRY}/dockerhub/golang:1.20.2 
+  script:
+  - echo Building linux/amd64 binary
+  - GOOS=linux GOARCH=amd64 go build -o bin/${CI_PROJECT_NAME}-linux-amd64 main.go
+  artifacts:
+    paths:
+    - bin/${CI_PROJECT_NAME}-linux-amd64
+    expire_in: 1 day
   
-# pushBinNexus:
-#   stage: pushBinNexus
-#   image: ${BASE_REGISTRY}/dockerhub/curlimages/curl:8.00.1
-#   script:
-#   - export REPO_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${Version}/${CI_PROJECT_NAME}-linux-amd64"
-#   - export VERSION=$(cat SSFVERSION)
-#   - echo Pushing binary to Nexus $REPO_URL
-#   - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-linux-amd64 "${REPO_URL}" -f 
+pushBinNexus:
+  stage: pushBinNexus
+  image: ${BASE_REGISTRY}/dockerhub/curlimages/curl:8.00.1
+  script:
+  - export REPO_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${Version}/${CI_PROJECT_NAME}-linux-amd64"
+  - export VERSION=$(cat SSFVERSION)
+  - echo Pushing binary to Nexus $REPO_URL
+  - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-linux-amd64 "${REPO_URL}" -f 
 
-# # version_check happens in stage: build. This is very misleading, it also builds an OCI image, so
-# # this should be explicitly defined as dockerBuild and version_check should be its own stage 
-# build:
-#   before_script:
-#   - export Version=$(cat SSFVERSION | cut -d'+' -f1' | tr + -) 
-#   # the directory structure in Nexus for storing Docker iamges does not follow standards.
-#   # The tag should include any necessary information, do not make it convoluted.
-#   extends: .docker_build
+# version_check happens in stage: build. This is very misleading, it also builds an OCI image, so
+# this should be explicitly defined as dockerBuild and version_check should be its own stage 
+build:
+  before_script:
+  - export Version=$(cat SSFVERSION | cut -d'+' -f1' | tr + -) 
+  # the directory structure in Nexus for storing Docker iamges does not follow standards.
+  # The tag should include any necessary information, do not make it convoluted.
+  extends: .docker_build
 
-# createGitRelease:
-#   stage: createGitRelease
-#   image: ${BASE_REGISTRY}/dockerhub/curlimages/curl:8.00.1
-#   script:
-#   - export RELEASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases"
-#   - export BASE_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${Version}"
-#   - |
-#     cat > release.json << EOF
-#     {
-#       "name": "$Version", 
-#       "tag_name": "$Version",
-#       "ref": "$Version",
-#       "description": "$RELEASE_DESCRIPTION",
-#       "assets": { 
-#         "links": [
-#           { "name": "$CI_PROJECT_NAME-linux-amd64", "url": "$BASE_URL/$CI_PROJECT_NAME-linux-amd64", "link_type":"other" }
-#         ]
-#       }
-#     }
-#     EOF
-#   - |
-#     curl --header 'Content-Type: application/json' --header "PRIVATE-TOKEN: ${GOVAR_TOKEN}" \
-#     -d @release.json ${RELEASE_URL}
+createGitRelease:
+  stage: createGitRelease
+  image: ${BASE_REGISTRY}/dockerhub/curlimages/curl:8.00.1
+  script:
+  - export RELEASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases"
+  - export BASE_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${Version}"
+  - |
+    cat > release.json << EOF
+    {
+      "name": "$Version", 
+      "tag_name": "$Version",
+      "ref": "$Version",
+      "description": "$RELEASE_DESCRIPTION",
+      "assets": { 
+        "links": [
+          { "name": "$CI_PROJECT_NAME-linux-amd64", "url": "$BASE_URL/$CI_PROJECT_NAME-linux-amd64", "link_type":"other" }
+        ]
+      }
+    }
+    EOF
+  - |
+    curl --header 'Content-Type: application/json' --header "PRIVATE-TOKEN: ${GOVAR_TOKEN}" \
+    -d @release.json ${RELEASE_URL}
 
-# twistlock_scan:
-#   extends: .twistlock_scan
-# #  The below items are needed per multi-build variant.
-# #   variables:
-# #     DOCKER_VARIANT: variant-tag
-
-# twistlock_to_hdf:
-#   extends: .twistlock_to_hdf
+twistlock_scan:
+  extends: .twistlock_scan
+#  The below items are needed per multi-build variant.
 #   variables:
-#     TWISTLOCK_SCAN_JOB_NAME: twistlock_scan
+#     DOCKER_VARIANT: variant-tag
 
-# mega-linter:
-#   stage: test
-#   image: ${BASE_REGISTRY}/dockerhub/nvuillam/mega-linter-python:v4
-#   script: ["/bin/bash /entrypoint.sh"]
-#   variables:
-#     DEFAULT_WORKSPACE: $CI_PROJECT_DIR
-#     ENABLE: JSON
+twistlock_to_hdf:
+  extends: .twistlock_to_hdf
+  variables:
+    TWISTLOCK_SCAN_JOB_NAME: twistlock_scan
+
+mega-linter:
+  stage: test
+  image: ${BASE_REGISTRY}/dockerhub/nvuillam/mega-linter-python:v4
+  script: ["/bin/bash /entrypoint.sh"]
+  variables:
+    DEFAULT_WORKSPACE: $CI_PROJECT_DIR
+    ENABLE: JSON
