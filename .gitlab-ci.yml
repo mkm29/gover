@@ -1,5 +1,5 @@
 variables:
-  GOVER_VERSION: 0.1.2-development-alpha.2
+  GOVER_VERSION: 0.1.2-development-alpha.3
 
 stages:
   - generateVersion
@@ -41,13 +41,11 @@ generateVersion:
   stage: generateVersion
   image: 
     name: ${BASE_REGISTRY}/ssf-tools/gover:${GOVER_VERSION}
-    entrypoint:
+  script:
     - gover
     - version
     - ">"
     - SSFVERSION
-  script:
-    - env > .env
   artifacts:
     paths:
       - SSFVERSION
