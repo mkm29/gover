@@ -41,11 +41,7 @@ generateVersion:
   stage: generateVersion
   image: 
     name: ${BASE_REGISTRY}/ssf-tools/gover:${GOVER_VERSION}
-  variables:
-    MYUSER: testuser
   script:
-    - useradd $MYUSER
-    - su $MYUSER
     - gover version > _version
   artifacts:
     paths:
