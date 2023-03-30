@@ -69,6 +69,7 @@ func NewVersionCommand() *cobra.Command {
 
 	// Define our command
 	output := ""
+	version := ""
 	versionCmd := &cobra.Command{
 		Use:   "version",
 		Short: "Print the version number of gover",
@@ -96,12 +97,14 @@ func NewVersionCommand() *cobra.Command {
 				utils.WriteVersion(cfg)
 				return
 			}
+			cfg.VersionFile = version
 			fmt.Fprintln(out, utils.GetVersion(cfg))
 		},
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
 	versionCmd.Flags().StringVarP(&output, "output", "o", "", "File to output version to")
+	versionCmd.Flags().StringVarP(&version, "version", "v", "VERSION", "Version file to use")
 	return versionCmd
 }
 
