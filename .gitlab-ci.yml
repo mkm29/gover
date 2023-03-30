@@ -5,10 +5,11 @@ stages:
   - generateVersion
   - buildBin
   - pushBinNexus
+  - gotest
   - build
-  - createGitRelease
-  - security_scan
-  - test
+  # - createGitRelease
+  # - security_scan
+  # - test
 include:
   - project: "SSF/SSF-Tools/ci-templates"
     ref: v0.0.8
@@ -73,7 +74,6 @@ pushBinNexus:
     /kaniko/executor --context $CI_PROJECT_DIR \
     --dockerfile Dockerfile \
     --destination $CONTAINER_REGISTRY/ssf-tools/$CI_PROJECT_NAME:$IMAGE_TAG \
-    --destination $CONTAINER_REGISTRY/ssf-tools/$CI_PROJECT_NAME:latest \
     --build-arg TARGETOS=linux \
     --build-arg TARGETARCH=amd64 \
     --label COMMIT_SHA=$CI_COMMIT_SHA \
@@ -98,16 +98,21 @@ build:
       }
       EOF
   script:
-    - export VERSION=$(cat _version.txt)
-    - |
-      NEXT_IID=$(($CI_PIPELINE_IID+1))
-      SS="build\."$CI_PIPELINE_IID
-      RS="build\."$NEXT_IID
-      export IMAGE_TAG=$(echo $VERSION | sed -rn "s/$SS/$RS/p")
+    - export IMAGE_TAG=$(cat _version.txt)
     - *kaniko-build
   # only:
   #   - main
 
+
+gotest:
+  stage: gotest
+  iamge: ${CONTAINER_REGISTRY}/dockerhub/golang:1.20.2 
+  script:
+    - Echo running tests
+    - go test ./... -v -coverpkg=./... -coverprofile cover.out
+  artifacts:
+    paths:
+      - cover.out
 
 # version_check happens in stage: build. This is very misleading, it also builds an OCI image, so
 # this should be explicitly defined as dockerBuild and version_check should be its own stage 
