@@ -83,7 +83,6 @@ pushBinNexus:
 # Jobs
 build:
   stage: build
-  tags: [devops, ssf]
   image: 
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
