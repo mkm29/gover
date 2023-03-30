@@ -1,5 +1,5 @@
 variables:
-  GOVER_VERSION: 0.1.4-development-build.53
+  GOVER_VERSION: 0.1.4-development-build.52
 
 stages:
   - generateVersion
