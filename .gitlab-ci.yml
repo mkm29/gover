@@ -68,6 +68,16 @@ pushBinNexus:
   - echo Pushing binary to Nexus $REPO_URL
   - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-linux-amd64 "${REPO_URL}" -f 
 
+gotest:
+  stage: gotest
+  image: ${CONTAINER_REGISTRY}/dockerhub/golang:1.20.2 
+  script:
+    - echo running tests
+    - go test ./... -v -coverpkg=./... -coverprofile cover.out
+  artifacts:
+    paths:
+      - cover.out
+
 # Gitlab Anchor called &kaniko-build
 .kaniko-build: &kaniko-build
   - |
@@ -97,22 +107,12 @@ build:
         }
       }
       EOF
-  script:
     - export IMAGE_TAG=$(cat _version.txt)
+    - echo "Image tag = $IMAGE_TAG"
+  script:
     - *kaniko-build
   # only:
   #   - main
-
-
-gotest:
-  stage: gotest
-  image: ${CONTAINER_REGISTRY}/dockerhub/golang:1.20.2 
-  script:
-    - echo running tests
-    - go test ./... -v -coverpkg=./... -coverprofile cover.out
-  artifacts:
-    paths:
-      - cover.out
 
 # version_check happens in stage: build. This is very misleading, it also builds an OCI image, so
 # this should be explicitly defined as dockerBuild and version_check should be its own stage 

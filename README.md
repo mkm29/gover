@@ -1,5 +1,8 @@
 # Gover
 
+[![pipeline status](https://code.sclzdev.net/ssf/ssf-tools/gover/badges/hotfix/pipeline.svg)](https://code.sclzdev.net/ssf/ssf-tools/gover/-/commits/hotfix) 
+[![coverage report](https://code.sclzdev.net/ssf/ssf-tools/gover/badges/hotfix/coverage.svg)](https://code.sclzdev.net/ssf/ssf-tools/gover/-/commits/hotfix) [![Latest Release](https://code.sclzdev.net/ssf/ssf-tools/gover/-/badges/release.svg)](https://code.sclzdev.net/ssf/ssf-tools/gover/-/releases)
+
 ```yaml
 Author: Mitch Murphy
 Date: 28 March 2023
