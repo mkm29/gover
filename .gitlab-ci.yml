@@ -40,7 +40,7 @@ include:
 generateVersion:
   stage: generateVersion
   image: 
-    name: ${CONTAINER_REGISTRY}/$(echo $CI_PROJECT_NAMESPACE | cut -d'/' -f2)/gover:${GOVER_VERSION}
+    name: ${CONTAINER_REGISTRY}/ssf-tools/gover:${GOVER_VERSION}
   script:
     - gover version -o _version.txt
   artifacts:
@@ -72,8 +72,8 @@ pushBinNexus:
   - |
     /kaniko/executor --context $CI_PROJECT_DIR/docker \
     --dockerfile $CI_PROJECT_DIR/docker/Dockerfile \
-    --destination $CONTAINER_REGISTRY/$(echo $CI_PROJECT_NAMESPACE | cut -d'/' -f2)/$CI_PROJECT_NAME:$IMAGE_TAG \
-    --destination $CONTAINER_REGISTRY/$(echo $CI_PROJECT_NAMESPACE | cut -d'/' -f2)/$CI_PROJECT_NAME:latest \
+    --destination $CONTAINER_REGISTRY/ssf-tools/$CI_PROJECT_NAME:$IMAGE_TAG \
+    --destination $CONTAINER_REGISTRY/ssf-tools/$CI_PROJECT_NAME:latest \
     --build-arg TARGETOS=linux \
     --build-arg TARGETARCH=am64 \
     --label COMMIT_SHA=$CI_COMMIT_SHA \
