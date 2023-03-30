@@ -106,7 +106,7 @@ build:
 
 gotest:
   stage: gotest
-  iamge: ${CONTAINER_REGISTRY}/dockerhub/golang:1.20.2 
+  image: ${CONTAINER_REGISTRY}/dockerhub/golang:1.20.2 
   script:
     - Echo running tests
     - go test ./... -v -coverpkg=./... -coverprofile cover.out
