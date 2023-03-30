@@ -1,0 +1,735 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>cmd: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">gover/cmd/root.go (0.0%)</option>
+				
+				<option value="file1">gover/internal/utils/envparse.go (64.5%)</option>
+				
+				<option value="file2">gover/internal/utils/utils.go (36.4%)</option>
+				
+				<option value="file3">gover/main.go (0.0%)</option>
+				
+				<option value="file4">gover/pkg/config/config.go (56.2%)</option>
+				
+				<option value="file5">gover/pkg/config/types.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package cmd
+
+import (
+        "fmt"
+        "gover/internal/utils"
+        "gover/pkg/config"
+        "log"
+
+        "github.com/spf13/cobra"
+        "github.com/spf13/pflag"
+        "github.com/spf13/viper"
+)
+
+var cfg *config.Config
+
+// Build the cobra command that handles our command line tool.
+func NewRootCommand() *cobra.Command <span class="cov0" title="0">{
+        // Store the result of binding cobra flags and viper config. In a
+        // real application these would be data structures, most likely
+        // custom structs per command. This is simplified for the demo app and is
+        // not recommended that you use one-off variables. The point is that we
+        // aren't retrieving the values directly from viper or flags, we read the values
+        // from standard Go data structures.
+
+        debug := false
+
+        rootCmd := &amp;cobra.Command{
+                Use:   "gover",
+                Short: "gover is a tool to get project version",
+                Long:  `gover gets the project vertsion using a combination of a VERSION file as well as GitLab CI/CD variables`,
+                PersistentPreRunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        // You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
+                        if cfg == nil </span><span class="cov0" title="0">{
+                                c, err := initializeConfig(cmd)
+                                if err != nil </span><span class="cov0" title="0">{
+                                        return err
+                                }</span>
+                                <span class="cov0" title="0">cfg = c</span>
+                        }
+                        <span class="cov0" title="0">ok, mv := cfg.CheckVariables()
+                        if !ok </span><span class="cov0" title="0">{
+                                log.Fatalf("Missing variables: %v", mv)
+                        }</span>
+                        <span class="cov0" title="0">return nil</span>
+                },
+                Run: func(cmd *cobra.Command, args []string) <span class="cov0" title="0">{
+                        if debug </span><span class="cov0" title="0">{
+                                log.Println("Debug is enabled")
+                        }</span>
+                        <span class="cov0" title="0">cfg.Debug = debug
+                        cmd.Help()</span>
+                },
+        }
+
+        // Define cobra flags, the default value has the lowest (least significant) precedence
+        <span class="cov0" title="0">rootCmd.Flags().BoolVarP(&amp;debug, "debug", "d", false, "Enable debug output")
+        rootCmd.AddCommand(NewVersionCommand())
+        return rootCmd</span>
+}
+
+// Build the cobra command that handles our command line tool.
+func NewVersionCommand() *cobra.Command <span class="cov0" title="0">{
+        // Store the result of binding cobra flags and viper config. In a
+        // real application these would be data structures, most likely
+        // custom structs per command. This is simplified for the demo app and is
+        // not recommended that you use one-off variables. The point is that we
+        // aren't retrieving the values directly from viper or flags, we read the values
+        // from standard Go data structures.
+
+        // Define our command
+        output := ""
+        version := ""
+        versionCmd := &amp;cobra.Command{
+                Use:   "version",
+                Short: "Print the version number of gover",
+                Long:  `All software has versions. This is gover's`,
+                PersistentPreRunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        // call parent PersistentPreRunE
+                        if err := cmd.Parent().PersistentPreRunE(cmd, args); err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                        // You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
+                        <span class="cov0" title="0">if cfg != nil </span><span class="cov0" title="0">{
+                                cfg.Output = output
+                        }</span> else<span class="cov0" title="0"> {
+                                return fmt.Errorf("config is nil")
+                        }</span>
+                        <span class="cov0" title="0">return nil</span>
+                },
+                Run: func(cmd *cobra.Command, args []string) <span class="cov0" title="0">{
+                        // Working with OutOrStdout/OutOrStderr allows us to unit test our command easier
+                        out := cmd.OutOrStdout()
+
+                        // Print the final resolved value from binding cobra flags and viper config
+                        // cfg.Output is not "" write to file
+                        if cfg.Output != "" </span><span class="cov0" title="0">{
+                                utils.WriteVersion(cfg)
+                                return
+                        }</span>
+                        <span class="cov0" title="0">cfg.VersionFile = version
+                        fmt.Fprintln(out, utils.GetVersion(cfg))</span>
+                },
+        }
+
+        // Define cobra flags, the default value has the lowest (least significant) precedence
+        <span class="cov0" title="0">versionCmd.Flags().StringVarP(&amp;output, "output", "o", "", "File to output version to")
+        versionCmd.Flags().StringVarP(&amp;version, "version", "v", "VERSION", "Version file to use")
+        return versionCmd</span>
+}
+
+func initializeConfig(cmd *cobra.Command) (*config.Config, error) <span class="cov0" title="0">{
+        v := viper.New()
+
+        c, err := config.LoadConfig()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // Bind the current command's flags to viper
+        <span class="cov0" title="0">bindFlags(cmd, v)
+
+        return c, nil</span>
+}
+
+// Bind each cobra flag to its associated viper configuration (config file and environment variable)
+func bindFlags(cmd *cobra.Command, v *viper.Viper) <span class="cov0" title="0">{
+        cmd.Flags().VisitAll(func(f *pflag.Flag) </span><span class="cov0" title="0">{
+                // Determine the naming convention of the flags when represented in the config file
+                configName := f.Name
+
+                // Apply the viper config value to the flag when the flag is not set and viper has a value
+                if !f.Changed &amp;&amp; v.IsSet(configName) </span><span class="cov0" title="0">{
+                        val := v.Get(configName)
+                        cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+                }</span>
+        })
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package utils
+
+import (
+        "bufio"
+        "bytes"
+        "fmt"
+        "gover/pkg/config"
+        "log"
+        "strconv"
+        "strings"
+)
+
+// ParseError is returned whenever the Parse function encounters an error. It
+// includes the line number and underlying error.
+type ParseError struct {
+        Line int
+        Err  error
+}
+
+type Version struct {
+        Major      int
+        Minor      int
+        Patch      int
+        Additional string
+}
+
+var cfg *config.Config
+
+func (e *ParseError) Error() string <span class="cov0" title="0">{
+        if e.Line &gt; 0 </span><span class="cov0" title="0">{
+                return fmt.Sprintf("error on line %d: %v", e.Line, e.Err)
+        }</span>
+        <span class="cov0" title="0">return fmt.Sprintf("error reading: %v", e.Err)</span>
+}
+
+func parseError(line int, err error) error <span class="cov0" title="0">{
+        return &amp;ParseError{
+                Line: line,
+                Err:  err,
+        }
+}</span>
+
+func (v *Version) String() string <span class="cov8" title="1">{
+        // 1. construct base version string
+        base := fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
+        // split MergeRequestTargetBranchName on /
+        targetBranch := strings.Split(strings.ToLower(cfg.Variables.MergeRequestTargetBranchName), "/")
+        // TODO: handle error when unable to split?
+        var tb string
+        if len(targetBranch) == 1 </span><span class="cov8" title="1">{
+                tb = targetBranch[0]
+        }</span> else<span class="cov0" title="0"> if len(targetBranch) == 2 </span><span class="cov0" title="0">{
+                tb = fmt.Sprintf("%s-%s", targetBranch[0], targetBranch[1])
+        }</span>
+        <span class="cov8" title="1">if cfg.Debug </span><span class="cov0" title="0">{
+                log.Printf("targetBranch: %s\n", targetBranch)
+        }</span>
+        // 2. if on defalt or release branch return version string
+        <span class="cov8" title="1">if tb == cfg.Variables.DefaultBranch || strings.Contains(tb, "release") </span><span class="cov0" title="0">{
+                return fmt.Sprintf("v%s", base)
+        }</span> else<span class="cov8" title="1"> {
+                // 3. if target branch is not default branch, append branch to base
+                base = fmt.Sprintf("%s-%s", base, tb)
+        }</span>
+        // 4. check if we need to append additional options
+        <span class="cov8" title="1">if v.Additional != "" </span><span class="cov0" title="0">{
+                base = fmt.Sprintf("%s-%s", base, v.Additional)
+        }</span>
+        // 5. Add build number
+        <span class="cov8" title="1">return fmt.Sprintf("%s+%d", base, cfg.Variables.PipelineIid)</span>
+}
+
+func GetVersion(c *config.Config) string <span class="cov8" title="1">{
+        // set variables
+        cfg = c
+        if cfg.Debug </span><span class="cov0" title="0">{
+                log.Println("GetVersion | Setting variables")
+        }</span>
+        // version is in the format of vX.Y.Z
+        // we want to return X.Y.Z (and optionally -ADDOPTS)
+        <span class="cov8" title="1">env := make(map[string]string)
+        vr := Version{
+                Major: 0,
+                Minor: 0,
+                Patch: 0,
+        }
+
+        // read VERSION file
+        if cfg.VersionFile == "" </span><span class="cov0" title="0">{
+                log.Println("GetVersion | No version file specified, using default version")
+                return fmt.Sprintf("1.1.1+%d", cfg.Variables.PipelineIid)
+        }</span>
+        <span class="cov8" title="1">r, err := ReadFile(cfg.VersionFile)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Printf("File: %s | %s\n", cfg.VersionFile, err)
+                return fmt.Sprintf("0.0.0+%d", cfg.Variables.PipelineIid)
+                // return vr.String()
+        }</span>
+
+        <span class="cov8" title="1">scanner := bufio.NewScanner(bytes.NewReader(r))
+
+        // Track line number
+        i := 0
+
+        // Main scan loop
+        for scanner.Scan() </span><span class="cov8" title="1">{
+                i++
+                k, v, err := parseLine(scanner.Bytes())
+                if err != nil </span><span class="cov0" title="0">{
+                        log.Println(parseError(i, err))
+                        return vr.String()
+                }</span>
+
+                // Skip blank lines
+                <span class="cov8" title="1">if len(k) &gt; 0 </span><span class="cov8" title="1">{
+                        env[string(k)] = string(v)
+                }</span>
+        }
+        <span class="cov8" title="1">if err := scanner.Err(); err != nil </span><span class="cov0" title="0">{
+                log.Println(parseError(i, err))
+                return vr.String()
+        }</span>
+        <span class="cov8" title="1">i, err = strconv.Atoi(env["MAJOR"])
+        if err != nil </span><span class="cov0" title="0">{
+                vr.Major = 0
+        }</span> else<span class="cov8" title="1"> {
+                vr.Major = i
+        }</span>
+        <span class="cov8" title="1">i, err = strconv.Atoi(env["MINOR"])
+        if err != nil </span><span class="cov0" title="0">{
+                log.Println(err)
+                vr.Minor = 0
+        }</span> else<span class="cov8" title="1"> {
+                vr.Minor = i
+        }</span>
+        <span class="cov8" title="1">i, err = strconv.Atoi(env["PATCH"])
+        if err != nil </span><span class="cov0" title="0">{
+                vr.Patch = 0
+        }</span> else<span class="cov8" title="1"> {
+                vr.Patch = i
+        }</span>
+        <span class="cov8" title="1">if env["ADDOPTS"] != "" &amp;&amp; strings.Contains(env["ADDOPTS"], "#") </span><span class="cov0" title="0">{
+                vr.Additional = env["ADDOPTS"]
+        }</span>
+        <span class="cov8" title="1">return vr.String()</span>
+}
+
+func parseLine(line []byte) ([]byte, []byte, error) <span class="cov8" title="1">{
+        // if line contains a #, return (ignore line)
+        if i := bytes.IndexByte(line, '#'); i &gt;= 0 </span><span class="cov8" title="1">{
+                return nil, nil, nil
+        }</span>
+        // Find the first equals sign
+        <span class="cov8" title="1">i := bytes.IndexByte(line, '=')
+        if i &lt; 0 </span><span class="cov0" title="0">{
+                return nil, nil, fmt.Errorf("no equals sign found")
+        }</span>
+
+        // Split the line into two parts by = sign
+        <span class="cov8" title="1">kv := bytes.Split(line, []byte("="))
+        k := bytes.TrimSpace(kv[0])
+        v := bytes.TrimSpace(kv[1])
+
+        // Check for empty key
+        if len(k) == 0 </span><span class="cov0" title="0">{
+                return nil, nil, fmt.Errorf("empty key")
+        }</span>
+
+        // Check for empty value
+        <span class="cov8" title="1">if len(v) == 0 </span><span class="cov0" title="0">{
+                return nil, nil, fmt.Errorf("empty value")
+        }</span>
+
+        // Check for invalid characters
+        <span class="cov8" title="1">if !validKey(k) </span><span class="cov0" title="0">{
+                return nil, nil, fmt.Errorf("invalid characters in key")
+        }</span>
+
+        <span class="cov8" title="1">return k, v, nil</span>
+}
+
+func validKey(k []byte) bool <span class="cov8" title="1">{
+        // key must either be MAJOR, MINOR, PATCH or ADDOPTS
+        return bytes.Equal(k, []byte("MAJOR")) || bytes.Equal(k, []byte("MINOR")) || bytes.Equal(k, []byte("PATCH")) || bytes.Equal(k, []byte("ADDOPTS"))
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package utils
+
+import (
+        "fmt"
+        "gover/pkg/config"
+        "os"
+        "path"
+)
+
+func ReadFile(path string) ([]byte, error) <span class="cov8" title="1">{
+        // read file
+        // log.Printf("Reading file: %s\n", path)
+        // check if file exists
+        if _, err := os.Stat(path); os.IsNotExist(err) </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("file does not exist: %s", path)
+        }</span>
+        <span class="cov8" title="1">b, err := os.ReadFile(path)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return b, nil</span>
+}
+
+func GetProjectRoot(p string) string <span class="cov0" title="0">{
+        dirname, err := os.Getwd()
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+
+        <span class="cov0" title="0">return path.Join(dirname, p)</span>
+}
+
+func WriteVersion(c *config.Config) error <span class="cov0" title="0">{
+        // write version to file
+        // log.Printf("Writing version to file: %s\n", cfg.VersionFile)
+        return os.WriteFile(c.Output, []byte(GetVersion(c)), 0644)
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package main
+
+import (
+        "gover/cmd"
+)
+
+func main() <span class="cov0" title="0">{
+        cmd := cmd.NewRootCommand()
+        cmd.Execute()
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package config
+
+import (
+        "log"
+        "reflect"
+
+        "github.com/spf13/viper"
+)
+
+var cfg *Config
+
+func init() <span class="cov8" title="1">{
+        cfg = &amp;Config{
+                requiredVars: map[string]string{
+                        "CI_DEFAULT_BRANCH":                   "DefaultBranch",
+                        "CI_MERGE_REQUEST_TARGET_BRANCH_NAME": "MergeRequestTargetBranchName",
+                        "CI_PIPELINE_IID":                     "PipelineIid",
+                },
+                Debug: false,
+        }
+}</span>
+
+// LoadConfig reads configuration from file or environment variables.
+func LoadConfig(args ...string) (config *Config, err error) <span class="cov8" title="1">{
+        v := viper.New()
+        if len(args) == 2 </span><span class="cov8" title="1">{
+                path, fname := args[0], args[1]
+                v.AddConfigPath(path)
+                v.SetConfigName(fname)
+                v.SetConfigType("env")
+                err = v.ReadInConfig()
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+        }
+        <span class="cov8" title="1">v.AutomaticEnv()
+        if len(args) == 0 </span><span class="cov0" title="0">{
+                for ev, _ := range cfg.requiredVars </span><span class="cov0" title="0">{
+                        v.BindEnv(ev)
+                }</span>
+        }
+        // set defaults
+        <span class="cov8" title="1">setDefaults(v)
+        var variables Variables
+
+        if err := v.Unmarshal(&amp;variables); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        // update cfg with variables
+        <span class="cov8" title="1">cfg.Variables = &amp;variables
+        if cfg.Debug </span><span class="cov0" title="0">{
+                log.Printf("Unmarshaled: %+v\n", cfg.Variables)
+        }</span>
+        <span class="cov8" title="1">return cfg, nil</span>
+}
+
+func setDefaults(v *viper.Viper) <span class="cov8" title="1">{
+        v.SetDefault("CI_BUILDS_DIR", "/builds")
+}</span>
+
+func (c *Config) CheckVariables() (bool, []string) <span class="cov0" title="0">{
+        // check if necessary variables are set
+        var missing []string
+        metaValue := reflect.ValueOf(c.Variables).Elem()
+        for _, name := range cfg.requiredVars </span><span class="cov0" title="0">{
+                field := metaValue.FieldByName(name)
+                if field == (reflect.Value{}) </span><span class="cov0" title="0">{
+                        missing = append(missing, name)
+                }</span>
+        }
+        <span class="cov0" title="0">if len(missing) &gt; 0 </span><span class="cov0" title="0">{
+                return false, missing
+        }</span>
+        <span class="cov0" title="0">return true, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package config
+
+import (
+        "fmt"
+        "time"
+)
+
+type Config struct {
+        VersionFile  string
+        Variables    *Variables
+        Debug        bool
+        requiredVars map[string]string
+        Output       string
+}
+
+type Timestamp time.Time
+
+/*
+TODO: Need to implement logic to convert keys such as CreatedAt to time.Time
+*/
+func (t *Timestamp) Marshal() ([]byte, error) <span class="cov0" title="0">{
+        ts := time.Time(*t).Unix()
+        stamp := fmt.Sprint(ts)
+
+        return []byte(stamp), nil
+}</span>
+
+type Variables struct {
+        ChatChannel                           string `mapstructure:"CHAT_CHANNEL"`
+        ChatInput                             string `mapstructure:"CHAT_INPUT"`
+        ChatUserId                            int    `mapstructure:"CHAT_USER_ID"`
+        CI                                    string `mapstructure:"CI"`
+        ApiUrl                                string `mapstructure:"CI_API_V4_URL"`
+        BuildsDir                             string `mapstructure:"CI_BUILDS_DIR"`
+        CommitAuthor                          string `mapstructure:"CI_COMMIT_AUTHOR"`
+        CommitBeforeSha                       string `mapstructure:"CI_COMMIT_BEFORE_SHA"`
+        CommitBranch                          string `mapstructure:"CI_COMMIT_BRANCH"`
+        CommitDescription                     string `mapstructure:"CI_COMMIT_DESCRIPTION"`
+        CommitMessage                         string `mapstructure:"CI_COMMIT_MESSAGE"`
+        CommitRefName                         string `mapstructure:"CI_COMMIT_REF_NAME"`
+        CommitRefProtected                    bool   `mapstructure:"CI_COMMIT_REF_PROTECTED"`
+        CommitRefSlug                         string `mapstructure:"CI_COMMIT_REF_SLUG"`
+        CommiSha                              string `mapstructure:"CI_COMMIT_SHA"`
+        CommiShortSha                         string `mapstructure:"CI_COMMIT_SHORT_SHA"`
+        CommiTag                              string `mapstructure:"CI_COMMIT_TAG"`
+        CommiTagMessage                       string `mapstructure:"CI_COMMIT_TAG_MESSAGE"`
+        CommiTimespamp                        string `mapstructure:"CI_COMMIT_TIMESTAMP"`
+        CommiTitle                            string `mapstructure:"CI_COMMIT_TITLE"`
+        CommiConcurrentId                     int    `mapstructure:"CI_CONCURRENT_ID"`
+        CommiConcurrentProjectId              int    `mapstructure:"CI_CONCURRENT_PROJECT_ID"`
+        ConfigPath                            string `mapstructure:"CI_CONFIG_PATH"`
+        DebugTrace                            bool   `mapstructure:"CI_DEBUG_TRACE"`
+        DebugService                          bool   `mapstructure:"CI_DEBUG_SERVICE"`
+        DefaultBranch                         string `mapstructure:"CI_DEFAULT_BRANCH"`
+        DependencyProxyGroupImagePrefix       string `mapstructure:"CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX"`
+        DependencyProxyDirectGroupImagePrefix string `mapstructure:"CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX"`
+        DependencyProxyPassword               string `mapstructure:"CI_DEPENDENCY_PROXY_PASSWORD"`
+        DependencyProxyServer                 string `mapstructure:"CI_DEPENDENCY_PROXY_SERVER"`
+        DependencyProxyUser                   string `mapstructure:"CI_DEPENDENCY_PROXY_USER"`
+        DeployFreeze                          bool   `mapstructure:"CI_DEPLOY_FREEZE"`
+        DeployPassword                        string `mapstructure:"CI_DEPLOY_PASSWORD"`
+        DeployUser                            string `mapstructure:"CI_DEPLOY_USER"`
+        DisposableEnvironment                 bool   `mapstructure:"CI_DISPOSABLE_ENVIRONMENT"`
+        EnvironmentName                       string `mapstructure:"CI_ENVIRONMENT_NAME"`
+        EnvironmentSlug                       string `mapstructure:"CI_ENVIRONMENT_SLUG"`
+        EnvironmentUrl                        string `mapstructure:"CI_ENVIRONMENT_URL"`
+        EnvironmentAction                     string `mapstructure:"CI_ENVIRONMENT_ACTION"`
+        EnvironmentTier                       string `mapstructure:"CI_ENVIRONMENT_TIER"`
+        ReleaseDescription                    string `mapstructure:"CI_RELEASE_DESCRIPTION"`
+        FipsMode                              bool   `mapstructure:"CI_GITLAB_FIPS_MODE"`
+        HasOpenRequirements                   bool   `mapstructure:"CI_HAS_OPEN_REQUIREMENTS"`
+        JobId                                 int    `mapstructure:"CI_JOB_ID"`
+        JobImage                              string `mapstructure:"CI_JOB_IMAGE"`
+        JobJwt                                string `mapstructure:"CI_JOB_JWT"`
+        JobJwtV1                              string `mapstructure:"CI_JOB_JWT_V1"`
+        JobJwtV2                              string `mapstructure:"CI_JOB_JWT_V2"`
+        JobManual                             string `mapstructure:"CI_JOB_MANUAL"`
+        JobName                               string `mapstructure:"CI_JOB_NAME"`
+        JobNameSlug                           string `mapstructure:"CI_JOB_NAME_SLUG"`
+        JobStage                              string `mapstructure:"CI_JOB_STAGE"`
+        JobStatus                             string `mapstructure:"CI_JOB_STATUS"`
+        JobTimeout                            int    `mapstructure:"CI_JOB_TIMEOUT"`
+        JobToken                              string `mapstructure:"CI_JOB_TOKEN"`
+        JobUrl                                string `mapstructure:"CI_JOB_URL"`
+        JobStartedAt                          string `mapstructure:"CI_JOB_STARTED_AT"`
+        KubernetesActive                      string `mapstructure:"CI_KUBERNETES_ACTIVE"`
+        NodeIndex                             int    `mapstructure:"CI_NODE_INDEX"`
+        NodeTotal                             int    `mapstructure:"CI_NODE_TOTAL"`
+        OpenMergeRequests                     string `mapstructure:"CI_OPEN_MERGE_REQUESTS"`
+        PagesDomain                           string `mapstructure:"CI_PAGES_DOMAIN"`
+        PagesUrl                              string `mapstructure:"CI_PAGES_URL"`
+        PipelineId                            int    `mapstructure:"CI_PIPELINE_ID"`
+        PipelineIid                           int    `mapstructure:"CI_PIPELINE_IID"`
+        PipelineSource                        string `mapstructure:"CI_PIPELINE_SOURCE"`
+        PipelineTriggered                     bool   `mapstructure:"CI_PIPELINE_TRIGGERED"`
+        PipelineUrl                           string `mapstructure:"CI_PIPELINE_URL"`
+        PipelineCreatedAt                     string `mapstructure:"CI_PIPELINE_CREATED_AT"`
+        ProjectDir                            string `mapstructure:"CI_PROJECT_DIR"`
+        ProjectId                             int    `mapstructure:"CI_PROJECT_ID"`
+        ProjectName                           string `mapstructure:"CI_PROJECT_NAME"`
+        ProjectNamespace                      string `mapstructure:"CI_PROJECT_NAMESPACE"`
+        ProjectNamespaceId                    int    `mapstructure:"CI_PROJECT_NAMESPACE_ID"`
+        ProjectPathSlug                       string `mapstructure:"CI_PROJECT_PATH_SLUG"`
+        ProjectPath                           string `mapstructure:"CI_PROJECT_PATH"`
+        ProjectRepositoryLanguage             string `mapstructure:"CI_PROJECT_REPOSITORY_LANGUAGES"`
+        ProjectRootNamespace                  string `mapstructure:"CI_PROJECT_ROOT_NAMESPACE"`
+        ProjectTitle                          string `mapstructure:"CI_PROJECT_TITLE"`
+        ProjectDescription                    string `mapstructure:"CI_PROJECT_DESCRIPTION"`
+        ProjectUrl                            string `mapstructure:"CI_PROJECT_URL"`
+        ProjectVisibility                     string `mapstructure:"CI_PROJECT_VISIBILITY"`
+        ProjectClassificationLabel            string `mapstructure:"CI_PROJECT_CLASSIFICATION_LABEL"`
+        RegistryImage                         string `mapstructure:"CI_REGISTRY_IMAGE"`
+        RegistryPassword                      string `mapstructure:"CI_REGISTRY_PASSWORD"`
+        RegistryUser                          string `mapstructure:"CI_REGISTRY_USER"`
+        Registry                              string `mapstructure:"CI_REGISTRY"`
+        RepositoryUrl                         string `mapstructure:"CI_REPOSITORY_URL"`
+        RunnerDescription                     string `mapstructure:"CI_RUNNER_DESCRIPTION"`
+        RunnerExecutableArch                  string `mapstructure:"CI_RUNNER_EXECUTABLE_ARCH"`
+        RunnerId                              int    `mapstructure:"CI_RUNNER_ID"`
+        RunnerRevision                        string `mapstructure:"CI_RUNNER_REVISION"`
+        RunnerShortToken                      string `mapstructure:"CI_RUNNER_SHORT_TOKEN"`
+        RunnerTags                            string `mapstructure:"CI_RUNNER_TAGS"`
+        RunnerVersion                         string `mapstructure:"CI_RUNNER_VERSION"`
+        ServerHost                            string `mapstructure:"CI_SERVER_HOST"`
+        ServerName                            string `mapstructure:"CI_SERVER_NAME"`
+        ServerPort                            int    `mapstructure:"CI_SERVER_PORT"`
+        ServerProtocol                        string `mapstructure:"CI_SERVER_PROTOCOL"`
+        ServerRevision                        string `mapstructure:"CI_SERVER_REVISION"`
+        ServerTlsCaFile                       string `mapstructure:"CI_SERVER_TLS_CA_FILE"`
+        ServerTlsCertFile                     string `mapstructure:"CI_SERVER_TLS_CERT_FILE"`
+        ServerTlsKeyFile                      string `mapstructure:"CI_SERVER_TLS_KEY_FILE"`
+        ServerUrl                             string `mapstructure:"CI_SERVER_URL"`
+        SemverVersionMajor                    int    `mapstructure:"CI_SERVER_VERSION_MAJOR"`
+        SemverVersionMinor                    int    `mapstructure:"CI_SERVER_VERSION_MINOR"`
+        SemverVersionPatch                    int    `mapstructure:"CI_SERVER_VERSION_PATCH"`
+        SemverVersion                         string `mapstructure:"CI_SERVER_VERSION"`
+        Server                                string `mapstructure:"CI_SERVER"`
+        SharedEnvironment                     bool   `mapstructure:"CI_SHARED_ENVIRONMENT"`
+        TemplateRegistryHost                  string `mapstructure:"CI_TEMPLATE_REGISTRY_HOST"`
+        GitlabFeatures                        string `mapstructure:"GITLAB_FEATURES"`
+        GitlabuserEmail                       string `mapstructure:"GITLAB_USER_EMAIL"`
+        GitlabuserId                          int    `mapstructure:"GITLAB_USER_ID"`
+        GitlabuserLogin                       string `mapstructure:"GITLAB_USER_LOGIN"`
+        GitlabUsername                        string `mapstructure:"GITLAB_USER_NAME"`
+        TriggerPayload                        string `mapstructure:"TRIGGER_PAYLOAD"`
+        MergeRequestApproved                  bool   `mapstructure:"CI_MERGE_REQUEST_APPROVED"`
+        MergeRequestAssignees                 string `mapstructure:"CI_MERGE_REQUEST_ASSIGNEES"`
+        MergeRequestId                        int    `mapstructure:"CI_MERGE_REQUEST_ID"`
+        MergeRequestIid                       int    `mapstructure:"CI_MERGE_REQUEST_IID"`
+        MergeRequestLabels                    string `mapstructure:"CI_MERGE_REQUEST_LABELS"`
+        MergeRequestMilestone                 string `mapstructure:"CI_MERGE_REQUEST_MILESTONE"`
+        MergeRequestProjectId                 int    `mapstructure:"CI_MERGE_REQUEST_PROJECT_ID"`
+        MergeRequestProjectPath               string `mapstructure:"CI_MERGE_REQUEST_PROJECT_PATH"`
+        MergeRequestProjectUrl                string `mapstructure:"CI_MERGE_REQUEST_PROJECT_URL"`
+        MergeRequestRefPath                   string `mapstructure:"CI_MERGE_REQUEST_REF_PATH"`
+        MergeRequestSourceBranchName          string `mapstructure:"CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"`
+        MergeRequestSourceBranchSha           string `mapstructure:"CI_MERGE_REQUEST_SOURCE_BRANCH_SHA"`
+        MergeRequestSourceProjectId           int    `mapstructure:"CI_MERGE_REQUEST_SOURCE_PROJECT_ID"`
+        MergeRequestSourceProjectPath         string `mapstructure:"CI_MERGE_REQUEST_SOURCE_PROJECT_PATH"`
+        MergeRequestSourceProjectUrl          string `mapstructure:"CI_MERGE_REQUEST_SOURCE_PROJECT_URL"`
+        MergeRequestTargetBranchName          string `mapstructure:"CI_MERGE_REQUEST_TARGET_BRANCH_NAME"`
+        MergeRequestTargetBranchProtected     bool   `mapstructure:"CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED"`
+        MergeRequestTargetBranchSha           string `mapstructure:"CI_MERGE_REQUEST_TARGET_BRANCH_SHA"`
+        MergeRequestTitle                     string `mapstructure:"CI_MERGE_REQUEST_TITLE"`
+        MergeRequestEventType                 string `mapstructure:"CI_MERGE_REQUEST_EVENT_TYPE"`
+        MergeRequestDiffId                    int    `mapstructure:"CI_MERGE_REQUEST_DIFF_ID"`
+        MergeRequestDiffBaseSha               string `mapstructure:"CI_MERGE_REQUEST_DIFF_BASE_SHA"`
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

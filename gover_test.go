@@ -104,8 +104,8 @@ func (s *UnitTestSuite) TestGetVersion() {
 func (s *UnitTestSuite) TearDownSuite() {
 	// run after all tests
 	s.T().Log("Tearing down test suite...")
-	// os.Remove("testdata/version")
-	// os.Remove("testdata/config.env")
+	os.Remove("testdata/version")
+	os.Remove("testdata/config.env")
 }
 
 // func (s *UnitTestSuite) TestRootCmd() {

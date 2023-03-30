@@ -6,11 +6,10 @@ import (
 )
 
 type Config struct {
-	VersionFile  string
-	Variables    *Variables
-	Debug        bool
-	requiredVars map[string]string
-	Output       string
+	VersionFile, Output string
+	Variables           *Variables
+	Debug               bool
+	requiredVars        map[string]string
 }
 
 type Timestamp time.Time
