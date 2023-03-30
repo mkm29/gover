@@ -1,27 +1,10 @@
 package config
 
-import (
-	"fmt"
-	"time"
-)
-
 type Config struct {
 	VersionFile, Output string
 	Variables           *Variables
 	Debug               bool
 	requiredVars        map[string]string
-}
-
-type Timestamp time.Time
-
-/*
-TODO: Need to implement logic to convert keys such as CreatedAt to time.Time
-*/
-func (t *Timestamp) Marshal() ([]byte, error) {
-	ts := time.Time(*t).Unix()
-	stamp := fmt.Sprint(ts)
-
-	return []byte(stamp), nil
 }
 
 type Variables struct {

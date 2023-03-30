@@ -91,6 +91,17 @@ func (s *UnitTestSuite) TestLoadConfig() {
 	asserts.Equal(1, config.Variables.PipelineIid)
 }
 
+func (s *UnitTestSuite) TestParseError() {
+	// intentionally add error in config file
+	requires := s.Require()
+	cc := `CI_DEFAULT_BRANCH?master`
+	err := createFile("error.env", cc)
+	requires.NoError(err)
+	_, err = config.LoadConfig("testdata", "error.env")
+	// expects error
+	requires.Error(err)
+}
+
 func (s *UnitTestSuite) TestGetVersion() {
 	// requires := s.Require()
 	config, err := config.LoadConfig("testdata", "config.env")
