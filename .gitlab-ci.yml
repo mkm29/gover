@@ -111,7 +111,7 @@ build:
         }
       }
       EOF
-    - export IMAGE_TAG=$(cat _version.txt | sed 's/\+/-build./g' )
+    - export IMAGE_TAG=$(cat _version.txt | sed 's/+/-build./g' || exit 1)
     - echo "Image tag = $IMAGE_TAG"
   script:
     - *kaniko-build
