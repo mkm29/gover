@@ -92,7 +92,7 @@ build:
       {
         "auths": {
           "$CONTAINER_REGISTRY": {
-            "$CONTAINER_REGISTRY_TOKEN"
+            "auth": "$CONTAINER_REGISTRY_TOKEN"
           }
         }
       }
