@@ -5,14 +5,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.1-alpha.1] - 2023-03-28
+## [0.1.3] - 2023-03-28
+
+## Added
+
+- `sonar-project.properties` file.
+- Created `WriteVersion` function in `utils` package. If the output flag is specified this will write the version to a file.
+- Created `initializeCommand` to call `config.LoadConfig` as well as `bindFlags` to bind any Cobra flags to the Viper instance
+
+## Changed
+
+- Added `debug/d` flag to root command
+- Added `output/o` flag to version subcommand
+- Copy over the `mkdir` and `grep` binaries from the `busybox` image in Dockerfile (needed to run Gitlab CI). This should be addressed as nothing should need to be on the distroless image except the `gover` binary
+- Created `initializeConfig` and `bindFlags` functions to 
+- Moved all Viper initialization from `main` to `cmd.initializeCommand`
+- Make sure to call the parents' `PersistentPreRunE` function in the version child command to initialize the configuration (Viper)
+
+## [0.1.2] - 2023-03-28
 
 ### fixed
 
 - If `VERSION` file does not exists, return `0.0.0+<PipelineIid>`
 - Added Docker instructions for building on Apple Silicon (enable multiplatform builds).
 
-## [0.1.0-alpha.1] - 2023-03-27
+## [0.1.0] - 2023-03-27
 
 ### Added
 

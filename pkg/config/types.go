@@ -9,6 +9,7 @@ type Config struct {
 	Variables    *Variables
 	Debug        bool
 	requiredVars map[string]string
+	Output       string
 }
 
 type Timestamp time.Time

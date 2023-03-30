@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"io/ioutil"
+	"gover/pkg/config"
 	"os"
 	"path"
 )
@@ -14,7 +14,7 @@ func ReadFile(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, fmt.Errorf("file does not exist: %s", path)
 	}
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -28,4 +28,10 @@ func GetProjectRoot(p string) string {
 	}
 
 	return path.Join(dirname, p)
+}
+
+func WriteVersion(c *config.Config) error {
+	// write version to file
+	// log.Printf("Writing version to file: %s\n", cfg.VersionFile)
+	return os.WriteFile(c.Output, []byte(GetVersion(c)), 0644)
 }

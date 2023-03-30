@@ -66,3 +66,17 @@ docker buildx build --platform "${OS}/${ARCH}" \
     -f $DOCKERFILE --push \
     -t "nexus.ssf.sclzdev.net/ssf-tools/gover:$VERSION" .
 ```
+
+## Sonarqube
+
+Running Sonarqube locally (using a Docker container) is easy. Just run the `sonarqube:lts-community` image and make sure that there is a `sonar-project.properties` file at the project root.
+
+### Run Server
+
+```bash
+
+```
+
+### Sonar-scanner
+
+Either install the binary locally, or use the Docker scanning container.

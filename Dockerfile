@@ -32,9 +32,10 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} go build -
 FROM nexus.ssf.sclzdev.net/ironbank/google/distroless/base:nonroot
 WORKDIR /
 COPY --from=builder /workspace/gover /bin/gover
-# Gitlab CI needs a shell, super secure
+# Gitlab CI needs a shell, mkdir and grep? Not very secure. Work on creating a better/more secure CI/CD systemn using just Golang
 COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc@sha256:58f16e69b626cfeed566288a6fe6d3950fb5601221bad4297474e7e93f90502b /bin/sh /bin/sh
-# COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc@sha256:58f16e69b626cfeed566288a6fe6d3950fb5601221bad4297474e7e93f90502b /bin/cat /bin/cat
+COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc@sha256:58f16e69b626cfeed566288a6fe6d3950fb5601221bad4297474e7e93f90502b /bin/grep /bin/grep
+COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc@sha256:58f16e69b626cfeed566288a6fe6d3950fb5601221bad4297474e7e93f90502b /bin/mkdir /bin/mkdir
 USER 65532:65532
 
 # ENTRYPOINT ["/gover"]
