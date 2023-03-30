@@ -70,7 +70,7 @@ pushBinNexus:
 # Gitlab Anchor called &kaniko-build
 .kaniko-build: &kaniko-build
   - |
-    /kaniko/executor --context $CI_PROJECT_DIR/docker \
+    /kaniko/executor --context $CI_PROJECT_DIR \
     --dockerfile Dockerfile \
     --destination $CONTAINER_REGISTRY/ssf-tools/$CI_PROJECT_NAME:$IMAGE_TAG \
     --destination $CONTAINER_REGISTRY/ssf-tools/$CI_PROJECT_NAME:latest \
@@ -79,8 +79,7 @@ pushBinNexus:
     --label COMMIT_SHA=$CI_COMMIT_SHA \
     --label VERSION=$VERSION \
     --label BUILD=$CI_PIPELINE_IID \
-    --label MAINTAINER="Mitchell Murphy<mitchell.k.murphy.ctr@socom.mil" \
-    --cache-dir /kaniko/gitlab-runner/cache
+    --label MAINTAINER="Mitchell Murphy<mitchell.k.murphy.ctr@socom.mil"
 # Jobs
 build:
   stage: build
