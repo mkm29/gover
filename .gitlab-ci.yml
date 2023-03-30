@@ -72,11 +72,15 @@ gotest:
   stage: gotest
   image: ${CONTAINER_REGISTRY}/dockerhub/golang:1.20.2 
   script:
-    - echo running tests
-    - go test ./... -v -coverpkg=./... -coverprofile cover.out
+    - go install
+    - go test ./... -coverprofile=coverage.txt -covermode count
+    - go get github.com/boumenot/gocover-cobertura
+    - go run github.com/boumenot/gocover-cobertura < coverage.txt > coverage.xml
   artifacts:
-    paths:
-      - cover.out
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
 
 # Gitlab Anchor called &kaniko-build
 .kaniko-build: &kaniko-build
