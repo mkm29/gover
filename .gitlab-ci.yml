@@ -75,7 +75,7 @@ pushBinNexus:
     --destination $CONTAINER_REGISTRY/ssf-tools/$CI_PROJECT_NAME:$IMAGE_TAG \
     --destination $CONTAINER_REGISTRY/ssf-tools/$CI_PROJECT_NAME:latest \
     --build-arg TARGETOS=linux \
-    --build-arg TARGETARCH=am64 \
+    --build-arg TARGETARCH=amd64 \
     --label COMMIT_SHA=$CI_COMMIT_SHA \
     --label VERSION=$VERSION \
     --label BUILD=$CI_PIPELINE_IID \
