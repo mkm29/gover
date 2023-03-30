@@ -7,8 +7,8 @@ ARG TARGETARCH
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY ../go.mod go.mod
+COPY ../go.sum go.sum
 
 # This only needs to be done when building on Gitlab CI
 # RUN chmod +w -R /workspace
@@ -18,7 +18,7 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
-COPY . .
+COPY ../ .
 
 # Build
 # the GOARCH has not a default value to allow the binary be built according to the host where the command
