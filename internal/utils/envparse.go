@@ -88,7 +88,7 @@ func GetVersion(c *config.Config) string {
 	// read VERSION file
 	if cfg.VersionFile == "" {
 		log.Println("GetVersion | No version file specified, using default version")
-		return fmt.Sprintf("1.1.1+%d", cfg.Variables.PipelineIid)
+		return fmt.Sprintf("0.0.0+%d", cfg.Variables.PipelineIid)
 	}
 	r, err := ReadFile(cfg.VersionFile)
 	if err != nil {

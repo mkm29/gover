@@ -81,7 +81,11 @@ func NewVersionCommand() *cobra.Command {
 			}
 			// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
 			if cfg != nil {
-				cfg.Output = output
+				if output != "" {
+					cfg.Output = output
+				} else {
+					cfg.Output = "VERSION"
+				}
 			} else {
 				return fmt.Errorf("config is nil")
 			}

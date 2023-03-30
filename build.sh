@@ -1,8 +1,8 @@
 #!/bin/sh
 
 OS=linux # `uname -s | tr A-Z a-z`
-ARCH=arm64 # `uname -m`
-DOCKERFILE=docker/Dockerfile
+ARCH=amd64 # `uname -m`
+DOCKERFILE=Dockerfile
 VERSION=$(./bin/gover version | sed 's/\+/-build./g')
 
 echo Logging into Nexus
