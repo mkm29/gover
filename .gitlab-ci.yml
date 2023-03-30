@@ -70,7 +70,7 @@ pushBinNexus:
 # Gitlab Anchor called &kaniko-build
 .kaniko-build: &kaniko-build
   - |
-    /kaniko/executor --context $CI_PROJECT_DIR/docker \
+    /kaniko/executor --context $CI_PROJECT_DIR/docker/Dockerfile \
     --dockerfile $CI_PROJECT_DIR/docker/Dockerfile \
     --destination $CONTAINER_REGISTRY/ssf-tools/$CI_PROJECT_NAME:$IMAGE_TAG \
     --destination $CONTAINER_REGISTRY/ssf-tools/$CI_PROJECT_NAME:latest \
