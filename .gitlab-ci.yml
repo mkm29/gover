@@ -64,7 +64,7 @@ pushBinNexus:
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
   script:
   - export VERSION=$(cat _version.txt)
-  - export REPO_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${Version}/${CI_PROJECT_NAME}-linux-amd64"
+  - export REPO_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${VERSION}/${CI_PROJECT_NAME}-linux-amd64"
   - echo Pushing binary to Nexus $REPO_URL
   - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-linux-amd64 "${REPO_URL}" -f 
 
@@ -111,7 +111,7 @@ build:
         }
       }
       EOF
-    - export IMAGE_TAG=$(cat _version.txt)
+    - export IMAGE_TAG=$(cat _version.txt | sed 's/\+/-build./g' )
     - echo "Image tag = $IMAGE_TAG"
   script:
     - *kaniko-build
