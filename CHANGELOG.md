@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved all Viper initialization from `main` to `cmd.initializeCommand`
 - Make sure to call the parents' `PersistentPreRunE` function in the version child command to initialize the configuration (Viper)
 
+### Fixed
+
+- Addressed error in parsing `VERSION` file when line is commented out (using a `#`)
+
 ## [0.1.2] - 2023-03-28
 
 ### fixed

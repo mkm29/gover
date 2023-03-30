@@ -88,6 +88,7 @@ func GetVersion(c *config.Config) string {
 	// read VERSION file
 	r, err := ReadFile(fmt.Sprintf("%s/%s", GetProjectRoot("./"), "VERSION"))
 	if err != nil {
+		// log.Println(err)
 		return fmt.Sprintf("0.0.0+%d", cfg.Variables.PipelineIid)
 		// return vr.String()
 	}
@@ -102,6 +103,7 @@ func GetVersion(c *config.Config) string {
 		i++
 		k, v, err := parseLine(scanner.Bytes())
 		if err != nil {
+			log.Println(parseError(i, err))
 			return vr.String()
 		}
 
@@ -122,6 +124,7 @@ func GetVersion(c *config.Config) string {
 	}
 	i, err = strconv.Atoi(env["MINOR"])
 	if err != nil {
+		log.Println(err)
 		vr.Minor = 0
 	} else {
 		vr.Minor = i
@@ -132,13 +135,17 @@ func GetVersion(c *config.Config) string {
 	} else {
 		vr.Patch = i
 	}
-	if env["ADDOPTS"] != "" {
+	if env["ADDOPTS"] != "" && strings.Contains(env["ADDOPTS"], "#") {
 		vr.Additional = env["ADDOPTS"]
 	}
 	return vr.String()
 }
 
 func parseLine(line []byte) ([]byte, []byte, error) {
+	// if line contains a #, return (ignore line)
+	if i := bytes.IndexByte(line, '#'); i >= 0 {
+		return nil, nil, nil
+	}
 	// Find the first equals sign
 	i := bytes.IndexByte(line, '=')
 	if i < 0 {

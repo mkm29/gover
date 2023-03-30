@@ -51,21 +51,7 @@ _Note_ that with how `MCS-COP` versions software (ie. `8.1.0`, `8.2.1`, etc.) th
 
 ## Docker
 
-### Build
-
-For non amd64 architectures (eg. Apple Silicon), Use buildkit.
-
-```bash
-OS=linux # `uname -s | tr A-Z a-z`
-ARCH=amd64 # `uname -m`
-DOCKERFILE=Dockerfile
-VERSION=0.1.2-development-alpha.3
-
-docker buildx build --platform "${OS}/${ARCH}" \
-    --build-arg=TARGETOS=$OS --build-arg=TARGETARCH=$ARCH \
-    -f $DOCKERFILE --push \
-    -t "nexus.ssf.sclzdev.net/ssf-tools/gover:$VERSION" .
-```
+Take a look at the [build](build.sh) script for more information on building an OCI image for platforms other than amd64.
 
 ## Sonarqube
 
@@ -73,10 +59,18 @@ Running Sonarqube locally (using a Docker container) is easy. Just run the `sona
 
 ### Run Server
 
-```bash
+You can run a simple local server using the Docker container:
 
+```bash
+docker run -d -p 9000:9000 sonarqube:lts-community
 ```
+
+Once running, please visit `http://localhost:9000` and login with the default admin credetials of `admin:admin`. Then, create a project (gover) and generate a token. Add this token to the `sonar-project.properties` file (under `sonar.login`). 
 
 ### Sonar-scanner
 
 Either install the binary locally, or use the Docker scanning container.
+
+#### Mac OS X
+
+Simply install with brew: `brew install sonar-scanner`. You can then scan by just calling `sonar-scanner`, and that will ingest the `sonar-project.properties` file, scan and upload the results to the local Sonarqube server.
