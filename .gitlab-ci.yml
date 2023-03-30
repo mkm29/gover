@@ -80,7 +80,6 @@ pushBinNexus:
     --label VERSION=$VERSION \
     --label BUILD=$CI_PIPELINE_IID \
     --label MAINTAINER="Mitchell Murphy<mitchell.k.murphy.ctr@socom.mil" \
-    --builds-dir /kaniko/gitlab-runner/builds \
     --cache-dir /kaniko/gitlab-runner/cache
 # Jobs
 build:
