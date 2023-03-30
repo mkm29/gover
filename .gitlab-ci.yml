@@ -108,7 +108,7 @@ gotest:
   stage: gotest
   image: ${CONTAINER_REGISTRY}/dockerhub/golang:1.20.2 
   script:
-    - Echo running tests
+    - echo running tests
     - go test ./... -v -coverpkg=./... -coverprofile cover.out
   artifacts:
     paths:
