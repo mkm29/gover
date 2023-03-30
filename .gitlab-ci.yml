@@ -13,10 +13,10 @@ include:
   - project: "SSF/SSF-Tools/ci-templates"
     ref: v0.0.8
     file:
-      - "auto_devops.yml"
+      # - "auto_devops.yml"
       - "workflow.yml"
-      - "/jobs/build/docker_build.yml"
-      - "/jobs/security_scan/twistlock.yml"
+      # - "/jobs/build/docker_build.yml"
+      # - "/jobs/security_scan/twistlock.yml"
 
 
 ###################################################################
@@ -40,16 +40,16 @@ include:
 generateVersion:
   stage: generateVersion
   image: 
-    name: ${BASE_REGISTRY}/ssf-tools/gover:${GOVER_VERSION}
+    name: ${CI_REGISTRY}/ssf-tools/gover:${GOVER_VERSION}
   script:
-    - gover version > _version
+    - gover version -o _version.txt
   artifacts:
     paths:
-      - _version
+      - _version.txt
 
 buildBin:
   stage: buildBin
-  image: ${BASE_REGISTRY}/dockerhub/golang:1.20.2 
+  image: ${CI_REGISTRY}/dockerhub/golang:1.20.2 
   script:
   - echo Building linux/amd64 binary
   - GOOS=linux GOARCH=amd64 go build -o bin/${CI_PROJECT_NAME}-linux-amd64 main.go
@@ -60,61 +60,99 @@ buildBin:
   
 pushBinNexus:
   stage: pushBinNexus
-  image: ${BASE_REGISTRY}/dockerhub/curlimages/curl:8.00.1
+  image: ${CI_REGISTRY}/dockerhub/curlimages/curl:8.00.1
   script:
-  - export VERSION=$(cat _version)
-  - export REPO_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${VERSION}/${CI_PROJECT_NAME}-linux-amd64"
+  - export VERSION=$(cat _version.txt)
+  - export REPO_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${Version}/${CI_PROJECT_NAME}-linux-amd64"
   - echo Pushing binary to Nexus $REPO_URL
   - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-linux-amd64 "${REPO_URL}" -f 
 
+# Gitlab Anchor called &kaniko-build
+.kaniko-build: &kaniko-build
+  - |
+    /kaniko/executor --context $CI_PROJECT_DIR/docker \
+    --dockerfile $CI_PROJECT_DIR/docker/Dockerfile \
+    --destination $CONTAINER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG \
+    --destination $CONTAINER_REGISTRY/$IMAGE_NAME:v$TF_VERSION-$TG_VERSION \
+    --build-arg TARGETOS=linux \
+    --build-arg TARGETARCH=am64 \
+    --label COMMIT_SHA=$CI_COMMIT_SHA \
+    --label VERSION=$VERSION \
+    --label BUILD=$CI_PIPELINE_IID \
+    --label MAINTAINER="Mitchell Murphy<mitchell.k.murphy.ctr@socom.mil"
+# Jobs
+build:
+  stage: build
+  tags: [devops, ssf]
+  image: 
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  before_script:
+    - |
+      cat <<EOF > /kaniko/.docker/config.json
+      {
+        "auths": {
+          "$CI_REGISTRY": {
+            "$CI_REGISTRY_TOKEN"
+          }
+        }
+      }
+      EOF
+  script:
+    - export VERSION=$(cat _version.txt)
+    - *kaniko-build
+  # only:
+  #   - main
+
+
 # version_check happens in stage: build. This is very misleading, it also builds an OCI image, so
 # this should be explicitly defined as dockerBuild and version_check should be its own stage 
-build:
-  before_script:
-  - export Version=$(cat _version | cut -d'+' -f1' | tr + -) 
-  # the directory structure in Nexus for storing Docker iamges does not follow standards.
-  # The tag should include any necessary information, do not make it convoluted.
-  extends: .docker_build
+# build:
+#   before_script:
+#   - export Version=$(cat _version.txt | cut -d'+' -f1' | tr + -) 
+#   # the directory structure in Nexus for storing Docker iamges does not follow standards.
+#   # The tag should include any necessary information, do not make it convoluted.
+#   extends: .docker_build
 
-createGitRelease:
-  stage: createGitRelease
-  image: ${BASE_REGISTRY}/dockerhub/curlimages/curl:8.00.1
-  script:
-  - export RELEASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases"
-  - export BASE_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${Version}"
-  - |
-    cat > release.json << EOF
-    {
-      "name": "$Version", 
-      "tag_name": "$Version",
-      "ref": "$Version",
-      "description": "$RELEASE_DESCRIPTION",
-      "assets": { 
-        "links": [
-          { "name": "$CI_PROJECT_NAME-linux-amd64", "url": "$BASE_URL/$CI_PROJECT_NAME-linux-amd64", "link_type":"other" }
-        ]
-      }
-    }
-    EOF
-  - |
-    curl --header 'Content-Type: application/json' --header "PRIVATE-TOKEN: ${GOVAR_TOKEN}" \
-    -d @release.json ${RELEASE_URL}
+# createGitRelease:
+#   stage: createGitRelease
+#   image: ${CI_REGISTRY}/dockerhub/curlimages/curl:8.00.1
+#   script:
+#   - export RELEASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases"
+#   - export BASE_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${Version}"
+#   - |
+#     cat > release.json << EOF
+#     {
+#       "name": "$Version", 
+#       "tag_name": "$Version",
+#       "ref": "$Version",
+#       "description": "$RELEASE_DESCRIPTION",
+#       "assets": { 
+#         "links": [
+#           { "name": "$CI_PROJECT_NAME-linux-amd64", "url": "$BASE_URL/$CI_PROJECT_NAME-linux-amd64", "link_type":"other" }
+#         ]
+#       }
+#     }
+#     EOF
+#   - |
+#     curl --header 'Content-Type: application/json' --header "PRIVATE-TOKEN: ${GOVAR_TOKEN}" \
+#     -d @release.json ${RELEASE_URL}
 
-twistlock_scan:
-  extends: .twistlock_scan
-#  The below items are needed per multi-build variant.
+# twistlock_scan:
+#   extends: .twistlock_scan
+# #  The below items are needed per multi-build variant.
+# #   variables:
+# #     DOCKER_VARIANT: variant-tag
+
+# twistlock_to_hdf:
+#   extends: .twistlock_to_hdf
 #   variables:
-#     DOCKER_VARIANT: variant-tag
+#     TWISTLOCK_SCAN_JOB_NAME: twistlock_scan
 
-twistlock_to_hdf:
-  extends: .twistlock_to_hdf
-  variables:
-    TWISTLOCK_SCAN_JOB_NAME: twistlock_scan
-
-mega-linter:
-  stage: test
-  image: ${BASE_REGISTRY}/dockerhub/nvuillam/mega-linter-python:v4
-  script: ["/bin/bash /entrypoint.sh"]
-  variables:
-    DEFAULT_WORKSPACE: $CI_PROJECT_DIR
-    ENABLE: JSON
+# mega-linter:
+#   stage: test
+#   image: ${CI_REGISTRY}/dockerhub/nvuillam/mega-linter-python:v4
+#   script: ["/bin/bash /entrypoint.sh"]
+#   variables:
+#     DEFAULT_WORKSPACE: $CI_PROJECT_DIR
+#     ENABLE: JSON
