@@ -1,6 +1,7 @@
 variables:
   GOVER_VERSION: 0.1.4-development-build.62
   TAG_MESSAGE: "Test tag message"
+  RELEASE_DESCRIPTION: "Test description"
 
 stages:
   - generateVersion
@@ -136,11 +137,11 @@ createGitTag:
   stage: createGitTag
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
   script:
-  - export VERSION=$(cat _version.txt)
+  - export VERSION=$(cat _version.txt | sed 's/\+[0-9]*//g')
   - echo Creating tag $VERSION
   - |
     curl --request POST --header "PRIVATE-TOKEN: $GOVER_TOKEN" \
-    "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/tags?tag_name=$VERSION&ref=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME&message=$TAG_MESSAGE"
+    "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/tags?tag_name=$VERSION&ref=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME&message=$TAG_MESSAGE"
 
 
 createGitRelease:
@@ -149,7 +150,7 @@ createGitRelease:
   script:
   - export RELEASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases"
   - export BASE_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${VERSION}"
-  - export VERSION=$(cat _version.txt)
+  - export VERSION=$(cat _version.txt | sed 's/\+[0-9]*//g')
   - |
     cat > release.json << EOF
     {
