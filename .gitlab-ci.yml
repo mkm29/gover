@@ -137,7 +137,7 @@ createGitTag:
   stage: createGitTag
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
   script:
-  - export VERSION=$(cat _version.txt | sed -rn 's/\+[0-9]*//g')
+  - export VERSION=$(cat _version.txt | sed -r 's/\+[0-9]*//g')
   - echo Creating tag $VERSION
   - |
     cat > tag.json << EOF
@@ -158,7 +158,7 @@ createGitRelease:
   script:
   - export RELEASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases"
   - export BASE_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${VERSION}"
-  - export VERSION=$(cat _version.txt | sed -rn 's/\+[0-9]*//g')
+  - export VERSION=$(cat _version.txt | sed -r 's/\+[0-9]*//g')
   - |
     cat > release.json << EOF
     {
