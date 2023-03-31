@@ -137,7 +137,7 @@ createGitTag:
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
   script:
   - export VERSION=$(cat _version.txt)
-  - echo "Creating tag: $VERSION"
+  - echo Creating tag $VERSION
   - |
     curl --request POST --header "PRIVATE-TOKEN: $GOVER_TOKEN" \
     "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/tags?tag_name=$VERSION&ref=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME&message=$TAG_MESSAGE"
