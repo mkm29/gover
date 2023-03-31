@@ -140,8 +140,16 @@ createGitTag:
   - export VERSION=$(cat _version.txt | sed 's/\+[0-9]*//g')
   - echo Creating tag $VERSION
   - |
-    curl --request POST --header "PRIVATE-TOKEN: $GOVER_TOKEN" \
-    "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/tags?tag_name=$VERSION&ref=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME&message=$TAG_MESSAGE"
+    cat > tag.json << EOF
+    {
+      "tag_name": "$VERSION",
+      "ref": "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME",
+      "message": "$TAG_MESSAGE"
+    }
+    EOF
+  - |
+    curl --header 'Content-Type: application/json' --header "PRIVATE-TOKEN: $GOVER_TOKEN" \
+    -d @tag.json "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/tags"
 
 
 createGitRelease:
