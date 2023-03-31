@@ -1,6 +1,6 @@
 variables:
   GOVER_VERSION: 0.1.4-development-build.62
-  TAG_MESSAGE: 
+  TAG_MESSAGE: "Test tag message"
 
 stages:
   - generateVersion
@@ -70,7 +70,7 @@ pushBinNexus:
   - export VERSION=$(cat _version.txt)
   - export BASE_RAW_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${VERSION}"
   - echo Pushing binary to Nexus $REPO_URL
-  - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-linux-amd64 "${BASE_RAW_URL}/{CI_PROJECT_NAME}-linux-amd64" -f 
+  - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-linux-amd64 "${BASE_RAW_URL}/${CI_PROJECT_NAME}-linux-amd64" -f 
   - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-darwin-arm64 "${BASE_RAW_URL}/${CI_PROJECT_NAME}-darwin-arm64" -f 
 
 gotest:
@@ -137,6 +137,7 @@ createGitTag:
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
   script:
   - export VERSION=$(cat _version.txt)
+  - echo "Creating tag: $VERSION"
   - |
     curl --request POST --header "PRIVATE-TOKEN: $GOVER_TOKEN" \
     "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/tags?tag_name=$VERSION&ref=$CI_MERGE_REQUEST_TARGET_BRANCH_NAME&message=$TAG_MESSAGE"
