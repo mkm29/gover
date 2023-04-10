@@ -1,27 +1,27 @@
 variables:
   GOVER_VERSION: 0.1.4-development-build.70
-  TAG_MESSAGE: "Test tag message"
-  RELEASE_DESCRIPTION: "Test description"
+  TAG_MESSAGE: "0.1.5-alpha.1 gover release. See CHANGELOG"
+  RELEASE_DESCRIPTION: "First alpha release of gover. Check release notes"
 
 stages:
   - lint
   - generateVersion
-  # - buildBin
-  # - pushBinNexus
-  # - gotest
-  # - build
+  - buildBin
+  - pushBinNexus
+  - gotest
+  - build
   - createGitTag
   - createGitRelease
-  # - security_scan
-  # - test
+  - sast
+
 include:
   - project: "SSF/SSF-Tools/ci-templates"
     ref: v0.0.8
     file:
-      # - "auto_devops.yml"
+      - "auto_devops.yml"
       - "workflow.yml"
-      # - "/jobs/build/docker_build.yml"
-      # - "/jobs/security_scan/twistlock.yml"
+      - "/jobs/build/docker_build.yml"
+      - "/jobs/security_scan/twistlock.yml"
 
 
 ###################################################################
@@ -70,42 +70,42 @@ generateVersion:
     paths:
       - _version.txt
 
-# buildBin:
-#   stage: buildBin
-#   image: ${CONTAINER_REGISTRY}/dockerhub/golang:1.20.2 
-#   script:
-#   - echo Building linux/amd64 binary
-#   - GOOS=linux GOARCH=amd64 go build -o bin/${CI_PROJECT_NAME}-linux-amd64 main.go
-#   - GOOS=darwin GOARCH=arm64 go build -o bin/${CI_PROJECT_NAME}-darwin-arm64 main.go
-#   artifacts:
-#     paths:
-#     - bin/${CI_PROJECT_NAME}-linux-amd64
-#     - bin/${CI_PROJECT_NAME}-darwin-arm64
-#     expire_in: 1 day
+buildBin:
+  stage: buildBin
+  image: ${CONTAINER_REGISTRY}/dockerhub/golang:1.20.2 
+  script:
+  - echo Building linux/amd64 binary
+  - GOOS=linux GOARCH=amd64 go build -o bin/${CI_PROJECT_NAME}-linux-amd64 main.go
+  - GOOS=darwin GOARCH=arm64 go build -o bin/${CI_PROJECT_NAME}-darwin-arm64 main.go
+  artifacts:
+    paths:
+    - bin/${CI_PROJECT_NAME}-linux-amd64
+    - bin/${CI_PROJECT_NAME}-darwin-arm64
+    expire_in: 1 day
   
-# pushBinNexus:
-#   stage: pushBinNexus
-#   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
-#   script:
-#   - export VERSION=$(cat _version.txt)
-#   - export BASE_RAW_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${VERSION}"
-#   - echo Pushing binary to Nexus $REPO_URL
-#   - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-linux-amd64 "${BASE_RAW_URL}/${CI_PROJECT_NAME}-linux-amd64" -f 
-#   - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-darwin-arm64 "${BASE_RAW_URL}/${CI_PROJECT_NAME}-darwin-arm64" -f 
+pushBinNexus:
+  stage: pushBinNexus
+  image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
+  script:
+  - export VERSION=$(cat _version.txt)
+  - export BASE_RAW_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${VERSION}"
+  - echo Pushing binary to Nexus $REPO_URL
+  - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-linux-amd64 "${BASE_RAW_URL}/${CI_PROJECT_NAME}-linux-amd64" -f 
+  - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-darwin-arm64 "${BASE_RAW_URL}/${CI_PROJECT_NAME}-darwin-arm64" -f 
 
-# gotest:
-#   stage: gotest
-#   image: ${CONTAINER_REGISTRY}/dockerhub/golang:1.20.2 
-#   script:
-#     - go install
-#     - go test ./... -v -coverpkg=./... -coverprofile=coverage.txt -covermode count
-#     - go get github.com/boumenot/gocover-cobertura
-#     - go run github.com/boumenot/gocover-cobertura < coverage.txt > coverage.xml
-#   artifacts:
-#     reports:
-#       coverage_report:
-#         coverage_format: cobertura
-#         path: coverage.xml
+gotest:
+  stage: gotest
+  image: ${CONTAINER_REGISTRY}/dockerhub/golang:1.20.2 
+  script:
+    - go install
+    - go test ./... -v -coverpkg=./... -coverprofile=coverage.txt -covermode count
+    - go get github.com/boumenot/gocover-cobertura
+    - go run github.com/boumenot/gocover-cobertura < coverage.txt > coverage.xml
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
 
 # Gitlab Anchor called &kaniko-build
 .kaniko-build: &kaniko-build
@@ -120,37 +120,37 @@ generateVersion:
     --label BUILD=$CI_PIPELINE_IID \
     --label MAINTAINER="Mitchell Murphy<mitchell.k.murphy.ctr@socom.mil"
 # Jobs
-# build:
-#   stage: build
-#   image: 
-#     name: gcr.io/kaniko-project/executor:debug
-#     entrypoint: [""]
-#   before_script:
-#     - |
-#       cat <<EOF > /kaniko/.docker/config.json
-#       {
-#         "auths": {
-#           "$CONTAINER_REGISTRY": {
-#             "auth": "$CONTAINER_REGISTRY_TOKEN"
-#           }
-#         }
-#       }
-#       EOF
-#     - export VERSION=$(cat _version.txt)
-#     - export IMAGE_TAG=$(echo $VERSION | sed 's/+/-build./g' || exit 1)
-#   script:
-#     - *kaniko-build
-#   # only:
-#   #   - main
+build:
+  stage: build
+  image: 
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  before_script:
+    - |
+      cat <<EOF > /kaniko/.docker/config.json
+      {
+        "auths": {
+          "$CONTAINER_REGISTRY": {
+            "auth": "$CONTAINER_REGISTRY_TOKEN"
+          }
+        }
+      }
+      EOF
+    - export VERSION=$(cat _version.txt)
+    - export IMAGE_TAG=$(echo $VERSION | sed 's/+/-build./g' || exit 1)
+  script:
+    - *kaniko-build
+  # only:
+  #   - main
 
-# version_check happens in stage: build. This is very misleading, it also builds an OCI image, so
-# this should be explicitly defined as dockerBuild and version_check should be its own stage 
-# build:
-#   before_script:
-#   - export Version=$(cat _version.txt | cut -d'+' -f1' | tr + -) 
-#   # the directory structure in Nexus for storing Docker iamges does not follow standards.
-#   # The tag should include any necessary information, do not make it convoluted.
-#   extends: .docker_build
+version_check happens in stage: build. This is very misleading, it also builds an OCI image, so
+this should be explicitly defined as dockerBuild and version_check should be its own stage 
+build:
+  before_script:
+  - export Version=$(cat _version.txt | cut -d'+' -f1' | tr + -) 
+  # the directory structure in Nexus for storing Docker iamges does not follow standards.
+  # The tag should include any necessary information, do not make it convoluted.
+  extends: .docker_build
 
 createGitTag:
   stage: createGitTag
@@ -197,16 +197,16 @@ createGitRelease:
     curl --header 'Content-Type: application/json' --header "PRIVATE-TOKEN: $GOVER_TOKEN" \
     -d @release.json ${RELEASE_URL}
 
-# twistlock_scan:
-#   extends: .twistlock_scan
-# #  The below items are needed per multi-build variant.
-# #   variables:
-# #     DOCKER_VARIANT: variant-tag
-
-# twistlock_to_hdf:
-#   extends: .twistlock_to_hdf
+twistlock_scan:
+  extends: .twistlock_scan
+#  The below items are needed per multi-build variant.
 #   variables:
-#     TWISTLOCK_SCAN_JOB_NAME: twistlock_scan
+#     DOCKER_VARIANT: variant-tag
+
+twistlock_to_hdf:
+  extends: .twistlock_to_hdf
+  variables:
+    TWISTLOCK_SCAN_JOB_NAME: twistlock_scan
 
 # mega-linter:
 #   stage: test
@@ -215,3 +215,6 @@ createGitRelease:
 #   variables:
 #     DEFAULT_WORKSPACE: $CI_PROJECT_DIR
 #     ENABLE: JSON
+
+sast:
+  extends: .sonarqube

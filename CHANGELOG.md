@@ -3,6 +3,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5-alpha.1] - 2023-04-10
+
+## Changed
+
+- Linted entire project (using `golangci-lint`)
+  - Check all errors
+  - Name return arguments in function signatures
+  - Changed internal spelling of types to match correct naming (eh. `ProjectId` -> `ProjectID`)
+- config
+  - Turned package initializer into package function (`init` -> `Init`)
+- main
+  - Main entrypoint/function only calls `rootCmd.Execute()`
+- `sonar-project.properties`: uupdated hostUrl and projectKey
+
+## Added
+
+- cmd
+  - Turn command variables (such as `rootCmd`) into contructor functions (`NewRootCmd(cfg *config.Config)`)
+  - `initializeConfig` function to bootstrap/bind Cobra and Viper (auto-marshal environment variables into Go structs)
+- internal
+  - Created `const` values (octal) for OS filemode permissions
+- `.gitlab-ci.yml`: Added linting stage
+- Created `Dockerfile` for to house `golangci-lint`, build on Iron Bank Go image (v1.20.2)
+- Created configuration file for golang-ci (`.golangci.yml`)
+
 ## [0.1.4] - 2023-03-31
 
 ## Changed
