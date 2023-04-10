@@ -1,5 +1,5 @@
 variables:
-  GOVER_VERSION: 0.1.4-development-build.72
+  GOVER_VERSION: 0.1.4-development-build.70
   TAG_MESSAGE: "Test tag message"
   RELEASE_DESCRIPTION: "Test description"
 
@@ -43,8 +43,8 @@ include:
 # when you want to link to specific artifacts...
 
 lint:
-  image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
-  # ${BASE_REGISTRY}/ssf-tools/golangci-lint:v1.52.2
+  image:  ${BASE_REGISTRY}/ssf-tools/golangci-lint:v1.52.2
+  # registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
   stage: lint
   script:
     # Use default .golangci.yml file from the image if one is not present in the project root.
