@@ -1,0 +1,21 @@
+FROM nexus.ssf.sclzdev.net/ironbank/google/golang/golang-1.20:1.20.0 as builder
+RUN mkdir -p /go/bin && \
+    export GOPATH=~/go && \
+    export PATH=$PATH:$GOPATH/bin && \
+    export GO111MODULE=on && \
+    export GOBIN=/go/bin && \
+    chmod -R 777 /go && \
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2
+
+# Use distroless as minimal base image to package the manager binary
+# Refer to https://github.com/GoogleContainerTools/distroless for more details
+FROM nexus.ssf.sclzdev.net/ironbank/google/distroless/base:nonroot
+WORKDIR /
+COPY --from=builder /go/bin/golangci-lint /bin/golangci-lint
+# Gitlab CI needs a shell, mkdir and grep? Not very secure. Work on creating a better/more secure CI/CD systemn using just Golang
+COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc@sha256:58f16e69b626cfeed566288a6fe6d3950fb5601221bad4297474e7e93f90502b /bin/sh /bin/sh
+COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc@sha256:58f16e69b626cfeed566288a6fe6d3950fb5601221bad4297474e7e93f90502b /bin/grep /bin/grep
+COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc@sha256:58f16e69b626cfeed566288a6fe6d3950fb5601221bad4297474e7e93f90502b /bin/mkdir /bin/mkdir
+USER 65532:65532
+
+CMD [ "golangci-lint" ]

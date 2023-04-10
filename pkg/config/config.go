@@ -9,7 +9,7 @@ import (
 
 var cfg *Config
 
-func init() {
+func Init() {
 	cfg = &Config{
 		requiredVars: map[string]string{
 			"CI_DEFAULT_BRANCH":                   "DefaultBranch",
@@ -35,8 +35,10 @@ func LoadConfig(args ...string) (config *Config, err error) {
 	}
 	v.AutomaticEnv()
 	if len(args) == 0 {
-		for ev, _ := range cfg.requiredVars {
-			v.BindEnv(ev)
+		for ev := range cfg.requiredVars {
+			if err := v.BindEnv(ev); err != nil {
+				return nil, err
+			}
 		}
 	}
 	// set defaults
@@ -58,7 +60,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("CI_BUILDS_DIR", "/builds")
 }
 
-func (c *Config) CheckVariables() (bool, []string) {
+func (c *Config) CheckVariables() (ok bool, vars []string) {
 	// check if necessary variables are set
 	var missing []string
 	metaValue := reflect.ValueOf(c.Variables).Elem()

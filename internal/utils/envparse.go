@@ -89,13 +89,11 @@ func GetVersion(c *config.Config) string {
 	if cfg.VersionFile == "" {
 		log.Println("GetVersion | No version file specified, using default version file")
 		cfg.VersionFile = "VERSION"
-		// return fmt.Sprintf("0.0.0+%d", cfg.Variables.PipelineIid)
 	}
 	r, err := ReadFile(cfg.VersionFile)
 	if err != nil {
 		log.Printf("File: %s | %s\n", cfg.VersionFile, err)
 		return fmt.Sprintf("0.0.0+%d", cfg.Variables.PipelineIid)
-		// return vr.String()
 	}
 
 	scanner := bufio.NewScanner(bytes.NewReader(r))
@@ -106,9 +104,9 @@ func GetVersion(c *config.Config) string {
 	// Main scan loop
 	for scanner.Scan() {
 		i++
-		k, v, err := parseLine(scanner.Bytes())
-		if err != nil {
-			log.Println(parseError(i, err))
+		k, v, e := parseLine(scanner.Bytes())
+		if e != nil {
+			log.Println(parseError(i, e))
 			return vr.String()
 		}
 
@@ -117,8 +115,8 @@ func GetVersion(c *config.Config) string {
 			env[string(k)] = string(v)
 		}
 	}
-	if err := scanner.Err(); err != nil {
-		log.Println(parseError(i, err))
+	if e := scanner.Err(); e != nil {
+		log.Println(parseError(i, e))
 		return vr.String()
 	}
 	i, err = strconv.Atoi(env["MAJOR"])
@@ -146,7 +144,7 @@ func GetVersion(c *config.Config) string {
 	return vr.String()
 }
 
-func parseLine(line []byte) ([]byte, []byte, error) {
+func parseLine(line []byte) (keys, values []byte, e error) {
 	// if line contains a #, return (ignore line)
 	if i := bytes.IndexByte(line, '#'); i >= 0 {
 		return nil, nil, nil
@@ -182,5 +180,9 @@ func parseLine(line []byte) ([]byte, []byte, error) {
 
 func validKey(k []byte) bool {
 	// key must either be MAJOR, MINOR, PATCH or ADDOPTS
-	return bytes.Equal(k, []byte("MAJOR")) || bytes.Equal(k, []byte("MINOR")) || bytes.Equal(k, []byte("PATCH")) || bytes.Equal(k, []byte("ADDOPTS"))
+	return bytes.Equal(k,
+		[]byte("MAJOR")) ||
+		bytes.Equal(k, []byte("MINOR")) ||
+		bytes.Equal(k, []byte("PATCH")) ||
+		bytes.Equal(k, []byte("ADDOPTS"))
 }

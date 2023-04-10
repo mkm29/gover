@@ -48,7 +48,9 @@ func NewRootCommand() *cobra.Command {
 				log.Println("Debug is enabled")
 			}
 			cfg.Debug = debug
-			cmd.Help()
+			if err := cmd.Help(); err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 
@@ -98,7 +100,9 @@ func NewVersionCommand() *cobra.Command {
 			// Print the final resolved value from binding cobra flags and viper config
 			// cfg.Output is not "" write to file
 			if cfg.Output != "" {
-				utils.WriteVersion(cfg)
+				if err := utils.WriteVersion(cfg); err != nil {
+					log.Fatal(err)
+				}
 				return
 			}
 			cfg.VersionFile = version
@@ -115,6 +119,8 @@ func NewVersionCommand() *cobra.Command {
 func initializeConfig(cmd *cobra.Command) (*config.Config, error) {
 	v := viper.New()
 
+	// Initialize config
+	config.Init()
 	c, err := config.LoadConfig()
 	if err != nil {
 		return nil, err
@@ -135,7 +141,9 @@ func bindFlags(cmd *cobra.Command, v *viper.Viper) {
 		// Apply the viper config value to the flag when the flag is not set and viper has a value
 		if !f.Changed && v.IsSet(configName) {
 			val := v.Get(configName)
-			cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+			if err := cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val)); err != nil {
+				log.Fatalf("unable to set flag '%s' from config: %v", f.Name, err)
+			}
 		}
 	})
 }

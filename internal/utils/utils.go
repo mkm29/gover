@@ -4,8 +4,20 @@ import (
 	"fmt"
 	"gover/pkg/config"
 	"os"
-	"path"
+	fp "path"
 )
+
+const (
+	OsReadOnly  = 0400
+	OsWrite     = 0200
+	OsReadWrite = 0600
+)
+
+// const (
+// 	OS_READ_ONLY  = 0400
+// 	OS_WRITE_ONLY = 0200
+// 	OS_READ_WRITE = 0600
+// )
 
 func ReadFile(path string) ([]byte, error) {
 	// read file
@@ -27,11 +39,10 @@ func GetProjectRoot(p string) string {
 		panic(err)
 	}
 
-	return path.Join(dirname, p)
+	return fp.Join(dirname, p)
 }
 
 func WriteVersion(c *config.Config) error {
 	// write version to file
-	// log.Printf("Writing version to file: %s\n", cfg.VersionFile)
-	return os.WriteFile(c.Output, []byte(GetVersion(c)), 0644)
+	return os.WriteFile(c.Output, []byte(GetVersion(c)), os.FileMode(OsReadOnly))
 }

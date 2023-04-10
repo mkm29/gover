@@ -1,9 +1,10 @@
 variables:
-  GOVER_VERSION: 0.1.4-development-build.62
+  GOVER_VERSION: 0.1.4-development-build.72
   TAG_MESSAGE: "Test tag message"
   RELEASE_DESCRIPTION: "Test description"
 
 stages:
+  - lint
   - generateVersion
   # - buildBin
   # - pushBinNexus
@@ -40,6 +41,23 @@ include:
 
 # releaseArtifact2nexus_script zips up all artifacts and only pushes one, this will not work
 # when you want to link to specific artifacts...
+
+lint:
+  image: ${BASE_REGISTRY}/ssf-tools/golangci-lint:v1.52.2
+  stage: lint
+  script:
+    # Use default .golangci.yml file from the image if one is not present in the project root.
+    - '[ -e .golangci.yml ] || cp /golangci/.golangci.yml .'
+    # Write the code coverage report to gl-code-quality-report.json
+    # and print linting issues to stdout in the format: path/to/file:line description
+    # remove `--issues-exit-code 0` or set to non-zero to fail the job if linting issues are detected
+    - golangci-lint run --issues-exit-code 0 --print-issued-lines=false --out-format code-climate:reports/gl-code-quality-report.json,line-number
+  artifacts:
+    reports:
+      codequality: reports/gl-code-quality-report.json
+    paths:
+      - reports/gl-code-quality-report.json
+
 
 generateVersion:
   stage: generateVersion

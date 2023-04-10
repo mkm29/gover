@@ -10,9 +10,9 @@ type Config struct {
 type Variables struct {
 	ChatChannel                           string `mapstructure:"CHAT_CHANNEL"`
 	ChatInput                             string `mapstructure:"CHAT_INPUT"`
-	ChatUserId                            int    `mapstructure:"CHAT_USER_ID"`
+	ChatUserID                            int    `mapstructure:"CHAT_USER_ID"`
 	CI                                    string `mapstructure:"CI"`
-	ApiUrl                                string `mapstructure:"CI_API_V4_URL"`
+	APIURL                                string `mapstructure:"CI_API_V4_URL"`
 	BuildsDir                             string `mapstructure:"CI_BUILDS_DIR"`
 	CommitAuthor                          string `mapstructure:"CI_COMMIT_AUTHOR"`
 	CommitBeforeSha                       string `mapstructure:"CI_COMMIT_BEFORE_SHA"`
@@ -28,8 +28,8 @@ type Variables struct {
 	CommiTagMessage                       string `mapstructure:"CI_COMMIT_TAG_MESSAGE"`
 	CommiTimespamp                        string `mapstructure:"CI_COMMIT_TIMESTAMP"`
 	CommiTitle                            string `mapstructure:"CI_COMMIT_TITLE"`
-	CommiConcurrentId                     int    `mapstructure:"CI_CONCURRENT_ID"`
-	CommiConcurrentProjectId              int    `mapstructure:"CI_CONCURRENT_PROJECT_ID"`
+	CommiConcurrentID                     int    `mapstructure:"CI_CONCURRENT_ID"`
+	CommiConcurrentProjectID              int    `mapstructure:"CI_CONCURRENT_PROJECT_ID"`
 	ConfigPath                            string `mapstructure:"CI_CONFIG_PATH"`
 	DebugTrace                            bool   `mapstructure:"CI_DEBUG_TRACE"`
 	DebugService                          bool   `mapstructure:"CI_DEBUG_SERVICE"`
@@ -45,13 +45,13 @@ type Variables struct {
 	DisposableEnvironment                 bool   `mapstructure:"CI_DISPOSABLE_ENVIRONMENT"`
 	EnvironmentName                       string `mapstructure:"CI_ENVIRONMENT_NAME"`
 	EnvironmentSlug                       string `mapstructure:"CI_ENVIRONMENT_SLUG"`
-	EnvironmentUrl                        string `mapstructure:"CI_ENVIRONMENT_URL"`
+	EnvironmentURL                        string `mapstructure:"CI_ENVIRONMENT_URL"`
 	EnvironmentAction                     string `mapstructure:"CI_ENVIRONMENT_ACTION"`
 	EnvironmentTier                       string `mapstructure:"CI_ENVIRONMENT_TIER"`
 	ReleaseDescription                    string `mapstructure:"CI_RELEASE_DESCRIPTION"`
 	FipsMode                              bool   `mapstructure:"CI_GITLAB_FIPS_MODE"`
 	HasOpenRequirements                   bool   `mapstructure:"CI_HAS_OPEN_REQUIREMENTS"`
-	JobId                                 int    `mapstructure:"CI_JOB_ID"`
+	JobID                                 int    `mapstructure:"CI_JOB_ID"`
 	JobImage                              string `mapstructure:"CI_JOB_IMAGE"`
 	JobJwt                                string `mapstructure:"CI_JOB_JWT"`
 	JobJwtV1                              string `mapstructure:"CI_JOB_JWT_V1"`
@@ -63,42 +63,42 @@ type Variables struct {
 	JobStatus                             string `mapstructure:"CI_JOB_STATUS"`
 	JobTimeout                            int    `mapstructure:"CI_JOB_TIMEOUT"`
 	JobToken                              string `mapstructure:"CI_JOB_TOKEN"`
-	JobUrl                                string `mapstructure:"CI_JOB_URL"`
+	JobURL                                string `mapstructure:"CI_JOB_URL"`
 	JobStartedAt                          string `mapstructure:"CI_JOB_STARTED_AT"`
 	KubernetesActive                      string `mapstructure:"CI_KUBERNETES_ACTIVE"`
 	NodeIndex                             int    `mapstructure:"CI_NODE_INDEX"`
 	NodeTotal                             int    `mapstructure:"CI_NODE_TOTAL"`
 	OpenMergeRequests                     string `mapstructure:"CI_OPEN_MERGE_REQUESTS"`
 	PagesDomain                           string `mapstructure:"CI_PAGES_DOMAIN"`
-	PagesUrl                              string `mapstructure:"CI_PAGES_URL"`
-	PipelineId                            int    `mapstructure:"CI_PIPELINE_ID"`
+	PagesURL                              string `mapstructure:"CI_PAGES_URL"`
+	PipelineID                            int    `mapstructure:"CI_PIPELINE_ID"`
 	PipelineIid                           int    `mapstructure:"CI_PIPELINE_IID"`
 	PipelineSource                        string `mapstructure:"CI_PIPELINE_SOURCE"`
 	PipelineTriggered                     bool   `mapstructure:"CI_PIPELINE_TRIGGERED"`
-	PipelineUrl                           string `mapstructure:"CI_PIPELINE_URL"`
+	PipelineURL                           string `mapstructure:"CI_PIPELINE_URL"`
 	PipelineCreatedAt                     string `mapstructure:"CI_PIPELINE_CREATED_AT"`
 	ProjectDir                            string `mapstructure:"CI_PROJECT_DIR"`
-	ProjectId                             int    `mapstructure:"CI_PROJECT_ID"`
+	ProjectID                             int    `mapstructure:"CI_PROJECT_ID"`
 	ProjectName                           string `mapstructure:"CI_PROJECT_NAME"`
 	ProjectNamespace                      string `mapstructure:"CI_PROJECT_NAMESPACE"`
-	ProjectNamespaceId                    int    `mapstructure:"CI_PROJECT_NAMESPACE_ID"`
+	ProjectNamespaceID                    int    `mapstructure:"CI_PROJECT_NAMESPACE_ID"`
 	ProjectPathSlug                       string `mapstructure:"CI_PROJECT_PATH_SLUG"`
 	ProjectPath                           string `mapstructure:"CI_PROJECT_PATH"`
 	ProjectRepositoryLanguage             string `mapstructure:"CI_PROJECT_REPOSITORY_LANGUAGES"`
 	ProjectRootNamespace                  string `mapstructure:"CI_PROJECT_ROOT_NAMESPACE"`
 	ProjectTitle                          string `mapstructure:"CI_PROJECT_TITLE"`
 	ProjectDescription                    string `mapstructure:"CI_PROJECT_DESCRIPTION"`
-	ProjectUrl                            string `mapstructure:"CI_PROJECT_URL"`
+	ProjectURL                            string `mapstructure:"CI_PROJECT_URL"`
 	ProjectVisibility                     string `mapstructure:"CI_PROJECT_VISIBILITY"`
 	ProjectClassificationLabel            string `mapstructure:"CI_PROJECT_CLASSIFICATION_LABEL"`
 	RegistryImage                         string `mapstructure:"CI_REGISTRY_IMAGE"`
 	RegistryPassword                      string `mapstructure:"CI_REGISTRY_PASSWORD"`
 	RegistryUser                          string `mapstructure:"CI_REGISTRY_USER"`
 	Registry                              string `mapstructure:"CI_REGISTRY"`
-	RepositoryUrl                         string `mapstructure:"CI_REPOSITORY_URL"`
+	RepositoryURL                         string `mapstructure:"CI_REPOSITORY_URL"`
 	RunnerDescription                     string `mapstructure:"CI_RUNNER_DESCRIPTION"`
 	RunnerExecutableArch                  string `mapstructure:"CI_RUNNER_EXECUTABLE_ARCH"`
-	RunnerId                              int    `mapstructure:"CI_RUNNER_ID"`
+	RunnerID                              int    `mapstructure:"CI_RUNNER_ID"`
 	RunnerRevision                        string `mapstructure:"CI_RUNNER_REVISION"`
 	RunnerShortToken                      string `mapstructure:"CI_RUNNER_SHORT_TOKEN"`
 	RunnerTags                            string `mapstructure:"CI_RUNNER_TAGS"`
@@ -108,10 +108,10 @@ type Variables struct {
 	ServerPort                            int    `mapstructure:"CI_SERVER_PORT"`
 	ServerProtocol                        string `mapstructure:"CI_SERVER_PROTOCOL"`
 	ServerRevision                        string `mapstructure:"CI_SERVER_REVISION"`
-	ServerTlsCaFile                       string `mapstructure:"CI_SERVER_TLS_CA_FILE"`
-	ServerTlsCertFile                     string `mapstructure:"CI_SERVER_TLS_CERT_FILE"`
-	ServerTlsKeyFile                      string `mapstructure:"CI_SERVER_TLS_KEY_FILE"`
-	ServerUrl                             string `mapstructure:"CI_SERVER_URL"`
+	ServerTLSCaFile                       string `mapstructure:"CI_SERVER_TLS_CA_FILE"`
+	ServerTLSCertFile                     string `mapstructure:"CI_SERVER_TLS_CERT_FILE"`
+	ServerTLSKeyFile                      string `mapstructure:"CI_SERVER_TLS_KEY_FILE"`
+	ServerURL                             string `mapstructure:"CI_SERVER_URL"`
 	SemverVersionMajor                    int    `mapstructure:"CI_SERVER_VERSION_MAJOR"`
 	SemverVersionMinor                    int    `mapstructure:"CI_SERVER_VERSION_MINOR"`
 	SemverVersionPatch                    int    `mapstructure:"CI_SERVER_VERSION_PATCH"`
@@ -121,30 +121,30 @@ type Variables struct {
 	TemplateRegistryHost                  string `mapstructure:"CI_TEMPLATE_REGISTRY_HOST"`
 	GitlabFeatures                        string `mapstructure:"GITLAB_FEATURES"`
 	GitlabuserEmail                       string `mapstructure:"GITLAB_USER_EMAIL"`
-	GitlabuserId                          int    `mapstructure:"GITLAB_USER_ID"`
+	GitlabuserID                          int    `mapstructure:"GITLAB_USER_ID"`
 	GitlabuserLogin                       string `mapstructure:"GITLAB_USER_LOGIN"`
 	GitlabUsername                        string `mapstructure:"GITLAB_USER_NAME"`
 	TriggerPayload                        string `mapstructure:"TRIGGER_PAYLOAD"`
 	MergeRequestApproved                  bool   `mapstructure:"CI_MERGE_REQUEST_APPROVED"`
 	MergeRequestAssignees                 string `mapstructure:"CI_MERGE_REQUEST_ASSIGNEES"`
-	MergeRequestId                        int    `mapstructure:"CI_MERGE_REQUEST_ID"`
+	MergeRequestID                        int    `mapstructure:"CI_MERGE_REQUEST_ID"`
 	MergeRequestIid                       int    `mapstructure:"CI_MERGE_REQUEST_IID"`
 	MergeRequestLabels                    string `mapstructure:"CI_MERGE_REQUEST_LABELS"`
 	MergeRequestMilestone                 string `mapstructure:"CI_MERGE_REQUEST_MILESTONE"`
-	MergeRequestProjectId                 int    `mapstructure:"CI_MERGE_REQUEST_PROJECT_ID"`
+	MergeRequestProjectID                 int    `mapstructure:"CI_MERGE_REQUEST_PROJECT_ID"`
 	MergeRequestProjectPath               string `mapstructure:"CI_MERGE_REQUEST_PROJECT_PATH"`
-	MergeRequestProjectUrl                string `mapstructure:"CI_MERGE_REQUEST_PROJECT_URL"`
+	MergeRequestProjectURL                string `mapstructure:"CI_MERGE_REQUEST_PROJECT_URL"`
 	MergeRequestRefPath                   string `mapstructure:"CI_MERGE_REQUEST_REF_PATH"`
 	MergeRequestSourceBranchName          string `mapstructure:"CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"`
 	MergeRequestSourceBranchSha           string `mapstructure:"CI_MERGE_REQUEST_SOURCE_BRANCH_SHA"`
-	MergeRequestSourceProjectId           int    `mapstructure:"CI_MERGE_REQUEST_SOURCE_PROJECT_ID"`
+	MergeRequestSourceProjectID           int    `mapstructure:"CI_MERGE_REQUEST_SOURCE_PROJECT_ID"`
 	MergeRequestSourceProjectPath         string `mapstructure:"CI_MERGE_REQUEST_SOURCE_PROJECT_PATH"`
-	MergeRequestSourceProjectUrl          string `mapstructure:"CI_MERGE_REQUEST_SOURCE_PROJECT_URL"`
+	MergeRequestSourceProjectURL          string `mapstructure:"CI_MERGE_REQUEST_SOURCE_PROJECT_URL"`
 	MergeRequestTargetBranchName          string `mapstructure:"CI_MERGE_REQUEST_TARGET_BRANCH_NAME"`
 	MergeRequestTargetBranchProtected     bool   `mapstructure:"CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED"`
 	MergeRequestTargetBranchSha           string `mapstructure:"CI_MERGE_REQUEST_TARGET_BRANCH_SHA"`
 	MergeRequestTitle                     string `mapstructure:"CI_MERGE_REQUEST_TITLE"`
 	MergeRequestEventType                 string `mapstructure:"CI_MERGE_REQUEST_EVENT_TYPE"`
-	MergeRequestDiffId                    int    `mapstructure:"CI_MERGE_REQUEST_DIFF_ID"`
+	MergeRequestDiffID                    int    `mapstructure:"CI_MERGE_REQUEST_DIFF_ID"`
 	MergeRequestDiffBaseSha               string `mapstructure:"CI_MERGE_REQUEST_DIFF_BASE_SHA"`
 }

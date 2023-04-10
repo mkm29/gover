@@ -11,18 +11,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-var evs = []map[string]string{
-	{
-		"CI_DEFAULT_BRANCH": "master",
-	},
-	{
-		"CI_MERGE_REQUEST_TARGET_BRANCH_NAME": "test",
-	},
-	{
-		"CI_PIPELINE_IID": "1",
-	},
-}
-
 type UnitTestSuite struct {
 	suite.Suite
 	Cmd    *cobra.Command
@@ -34,10 +22,10 @@ func (s *UnitTestSuite) SetupSuite() {
 	// clear environment variables
 	os.Clearenv()
 	// create temporary testdata directory
-	os.Mkdir("testdata", 0755)
-	// asserts := s.Assert()
+	if err := os.Mkdir("testdata", 0600); err != nil {
+		s.T().Fatalf("Unable to create testdata directory: %v", err)
+	}
 	requires := s.Require()
-	// s.setupEnvironmentVariables()
 
 	vc := `MAJOR=1
 MINOR=2
@@ -46,33 +34,20 @@ PATCH=3
 
 	err := createFile("version", vc)
 	requires.NoError(err)
-	// s.T().Logf("Version file: %s\n", s.VersionFile)
 
 	cc := `CI_DEFAULT_BRANCH=master
 CI_MERGE_REQUEST_TARGET_BRANCH_NAME=test
 CI_PIPELINE_IID=1`
 	err = createFile("config.env", cc)
 	requires.NoError(err)
-	// s.T().Logf("Config file: %s\n", s.ConfigFile)
-
 }
 
-func createFile(fn string, s string) error {
-	// file, err := os.CreateTemp("testdata", fn)
+func createFile(fn, s string) error {
 	fp := fmt.Sprintf("testdata/%s", fn)
-	if err := os.WriteFile(fp, []byte(s), 0644); err != nil {
+	if err := os.WriteFile(fp, []byte(s), 0600); err != nil {
 		return err
 	}
 	return nil
-}
-
-// function to set environment variables
-func (s *UnitTestSuite) setupEnvironmentVariables() {
-	for _, e := range evs {
-		for k, v := range e {
-			s.T().Setenv(k, v)
-		}
-	}
 }
 
 func TestUnitTestSuite(t *testing.T) {
@@ -82,13 +57,13 @@ func TestUnitTestSuite(t *testing.T) {
 
 func (s *UnitTestSuite) TestLoadConfig() {
 	requires := s.Require()
-	config, err := config.LoadConfig("testdata", "config.env")
+	cfg, err := config.LoadConfig("testdata", "config.env")
 	requires.NoError(err)
-	s.Config = config
+	s.Config = cfg
 	asserts := s.Assert()
-	asserts.Equal("master", config.Variables.DefaultBranch)
-	asserts.Equal("test", config.Variables.MergeRequestTargetBranchName)
-	asserts.Equal(1, config.Variables.PipelineIid)
+	asserts.Equal("master", cfg.Variables.DefaultBranch)
+	asserts.Equal("test", cfg.Variables.MergeRequestTargetBranchName)
+	asserts.Equal(1, cfg.Variables.PipelineIid)
 }
 
 func (s *UnitTestSuite) TestParseError() {
@@ -103,11 +78,10 @@ func (s *UnitTestSuite) TestParseError() {
 }
 
 func (s *UnitTestSuite) TestGetVersion() {
-	// requires := s.Require()
-	config, err := config.LoadConfig("testdata", "config.env")
+	cfg, err := config.LoadConfig("testdata", "config.env")
 	s.Require().NoError(err)
-	config.VersionFile = "testdata/version"
-	version := utils.GetVersion(config)
+	cfg.VersionFile = "testdata/version"
+	version := utils.GetVersion(cfg)
 	// make sure version contains 1.2.3
 	s.Assert().Contains(version, "1.2.3")
 }
