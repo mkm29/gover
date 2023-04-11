@@ -12,6 +12,8 @@ stages:
   - build
   - createGitTag
   - createGitRelease
+#   - twistlock_scan
+#   - twistlock_to_hdf
   - sast
 
 include:
@@ -22,6 +24,7 @@ include:
       - "workflow.yml"
       - "/jobs/build/docker_build.yml"
       - "/jobs/security_scan/twistlock.yml"
+      - "/jobs/security_scan/sonarqube.yml"
 
 
 ###################################################################
@@ -143,8 +146,8 @@ build:
   # only:
   #   - main
 
-version_check happens in stage: build. This is very misleading, it also builds an OCI image, so
-this should be explicitly defined as dockerBuild and version_check should be its own stage 
+# version_check happens in stage: build. This is very misleading, it also builds an OCI image, so
+# this should be explicitly defined as dockerBuild and version_check should be its own stage 
 build:
   before_script:
   - export Version=$(cat _version.txt | cut -d'+' -f1' | tr + -) 
@@ -197,16 +200,16 @@ createGitRelease:
     curl --header 'Content-Type: application/json' --header "PRIVATE-TOKEN: $GOVER_TOKEN" \
     -d @release.json ${RELEASE_URL}
 
-twistlock_scan:
-  extends: .twistlock_scan
-#  The below items are needed per multi-build variant.
-#   variables:
-#     DOCKER_VARIANT: variant-tag
+# twistlock_scan:
+#   extends: .twistlock_scan
+# #  The below items are needed per multi-build variant.
+# #   variables:
+# #     DOCKER_VARIANT: variant-tag
 
-twistlock_to_hdf:
-  extends: .twistlock_to_hdf
-  variables:
-    TWISTLOCK_SCAN_JOB_NAME: twistlock_scan
+# twistlock_to_hdf:
+#   extends: .twistlock_to_hdf
+#   variables:
+#     TWISTLOCK_SCAN_JOB_NAME: twistlock_scan
 
 # mega-linter:
 #   stage: test
@@ -215,6 +218,9 @@ twistlock_to_hdf:
 #   variables:
 #     DEFAULT_WORKSPACE: $CI_PROJECT_DIR
 #     ENABLE: JSON
-
 sast:
+  stage: sast
+  before_script:
+  - export VERSION=`cat _version.txt`
+  - sed -i 's/${PROJECT_VERSION}/${VERSION}/g' sonar-project.properties
   extends: .sonarqube
