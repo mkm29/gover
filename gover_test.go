@@ -22,7 +22,7 @@ func (s *UnitTestSuite) SetupSuite() {
 	// clear environment variables
 	os.Clearenv()
 	// create temporary testdata directory
-	if err := os.Mkdir("testdata", 0600); err != nil {
+	if err := os.MkdirAll("testdata", os.ModeSticky|os.ModePerm); err != nil {
 		s.T().Fatalf("Unable to create testdata directory: %v", err)
 	}
 	requires := s.Require()
@@ -40,11 +40,13 @@ CI_MERGE_REQUEST_TARGET_BRANCH_NAME=test
 CI_PIPELINE_IID=1`
 	err = createFile("config.env", cc)
 	requires.NoError(err)
+	// initialize config
+	config.Init()
 }
 
 func createFile(fn, s string) error {
 	fp := fmt.Sprintf("testdata/%s", fn)
-	if err := os.WriteFile(fp, []byte(s), 0600); err != nil {
+	if err := os.WriteFile(fp, []byte(s), os.FileMode(0600)); err != nil {
 		return err
 	}
 	return nil
@@ -89,8 +91,10 @@ func (s *UnitTestSuite) TestGetVersion() {
 func (s *UnitTestSuite) TearDownSuite() {
 	// run after all tests
 	s.T().Log("Tearing down test suite...")
-	os.Remove("testdata/version")
-	os.Remove("testdata/config.env")
+	// remove the testdata directory
+	if err := os.RemoveAll("testdata"); err != nil {
+		s.T().Fatalf("Unable to remove testdata directory: %v", err)
+	}
 }
 
 // func (s *UnitTestSuite) TestRootCmd() {
