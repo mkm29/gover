@@ -146,15 +146,6 @@ build:
   # only:
   #   - main
 
-# version_check happens in stage: build. This is very misleading, it also builds an OCI image, so
-# this should be explicitly defined as dockerBuild and version_check should be its own stage 
-build:
-  before_script:
-  - export Version=$(cat _version.txt | cut -d'+' -f1' | tr + -) 
-  # the directory structure in Nexus for storing Docker iamges does not follow standards.
-  # The tag should include any necessary information, do not make it convoluted.
-  extends: .docker_build
-
 createGitTag:
   stage: createGitTag
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
