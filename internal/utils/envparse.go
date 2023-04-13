@@ -99,7 +99,8 @@ func getTargetBranch() string {
 
 func isReleaseBranch() bool {
 	// cfg.Variables.DefaultBranch || strings.Contains(strings.ToLower(tb), "release"
-	return strings.Contains(strings.ToLower(cfg.Variables.MergeRequestTargetBranchName), "release") || strings.Contains(strings.ToLower(cfg.Variables.CommitBranch), "release")
+	return (strings.Contains(strings.ToLower(cfg.Variables.MergeRequestTargetBranchName), "release") ||
+		strings.Contains(strings.ToLower(cfg.Variables.CommitBranch), "release"))
 }
 
 func (v *Version) String() string {

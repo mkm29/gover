@@ -1,6 +1,6 @@
 variables:
-  GOVER_VERSION: 0.1.4-development-build.70
-  TAG_MESSAGE: "0.1.5-alpha.1 gover release. See CHANGELOG"
+  GOVER_VERSION: 0.1.5-alpha.1.build.83
+  TAG_MESSAGE: "0.1.5-alpha.1.build.83 gover release. See CHANGELOG"
   RELEASE_DESCRIPTION: "First alpha release of gover. Check release notes"
 
 stages:
