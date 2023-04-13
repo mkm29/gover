@@ -37,6 +37,7 @@ func NewRootCommand() *cobra.Command {
 				}
 				cfg = c
 			}
+			cfg.Debug = debug
 			ok, mv := cfg.CheckVariables()
 			if !ok {
 				log.Fatalf("Missing variables: %v", mv)
@@ -44,10 +45,6 @@ func NewRootCommand() *cobra.Command {
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			if debug {
-				log.Println("Debug is enabled")
-			}
-			cfg.Debug = debug
 			if err := cmd.Help(); err != nil {
 				log.Fatal(err)
 			}
@@ -55,7 +52,8 @@ func NewRootCommand() *cobra.Command {
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable debug output")
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debug output")
+
 	rootCmd.AddCommand(NewVersionCommand())
 	return rootCmd
 }
@@ -96,6 +94,7 @@ func NewVersionCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			// Working with OutOrStdout/OutOrStderr allows us to unit test our command easier
 			out := cmd.OutOrStdout()
+			log.Printf("Debug: %v\n", cfg.Debug)
 
 			// Print the final resolved value from binding cobra flags and viper config
 			// cfg.Output is not "" write to file

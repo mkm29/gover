@@ -46,3 +46,11 @@ func WriteVersion(c *config.Config) error {
 	// write version to file
 	return os.WriteFile(c.Output, []byte(GetVersion(c)), os.FileMode(OsReadOnly))
 }
+
+func GetEnv(key, fallback string) string {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	return v
+}
