@@ -83,8 +83,6 @@ func NewVersionCommand() *cobra.Command {
 			if cfg != nil {
 				if output != "" {
 					cfg.Output = output
-				} else {
-					cfg.Output = "VERSION"
 				}
 			} else {
 				return fmt.Errorf("config is nil")
@@ -94,7 +92,9 @@ func NewVersionCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			// Working with OutOrStdout/OutOrStderr allows us to unit test our command easier
 			out := cmd.OutOrStdout()
-			log.Printf("Debug: %v\n", cfg.Debug)
+			if cfg.Debug {
+				log.Println("Debug is enabled")
+			}
 
 			// Print the final resolved value from binding cobra flags and viper config
 			// cfg.Output is not "" write to file
@@ -105,7 +105,12 @@ func NewVersionCommand() *cobra.Command {
 				return
 			}
 			cfg.VersionFile = version
-			fmt.Fprintln(out, utils.GetVersion(cfg))
+			if output != "" {
+				fmt.Fprintln(out, utils.GetVersion(cfg))
+			} else {
+				// print to stdout
+				fmt.Println(utils.GetVersion(cfg))
+			}
 		},
 	}
 

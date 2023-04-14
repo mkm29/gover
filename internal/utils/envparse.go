@@ -96,9 +96,8 @@ func getTargetBranch() string {
 		tb = getBranch(cfg.Variables.CommitBranch, false)
 	case "push":
 		if cfg.Debug {
-			log.Println("push build")
+			log.Printf("push build, commit branch: %s\n", cfg.Variables.CommitBranch)
 		}
-		log.Printf("CommitBranch: %+v\n", cfg.Variables.CommitBranch)
 		tb = getBranch(cfg.Variables.CommitBranch, false)
 	default:
 		if cfg.Debug {
