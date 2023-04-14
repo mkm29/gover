@@ -71,7 +71,6 @@ generateVersion:
     - gover version -o _version.txt
     - chown root:root _version.txt
   artifacts:
-    untracked: true
     paths:
       - _version.txt
 
