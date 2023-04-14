@@ -141,6 +141,8 @@ build:
       }
       EOF
     # - chown $(id -u):$(id -g) _version.txt
+    - id
+    - ls -l 
     - export VERSION=$(cat _version.txt)
     - export IMAGE_TAG=$(echo $VERSION | sed 's/+/-build./g' || exit 1)
   script:
