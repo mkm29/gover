@@ -40,6 +40,8 @@ COPY --from=builder /workspace/gover /bin/gover
 COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc@sha256:58f16e69b626cfeed566288a6fe6d3950fb5601221bad4297474e7e93f90502b /bin/sh /bin/sh
 COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc@sha256:58f16e69b626cfeed566288a6fe6d3950fb5601221bad4297474e7e93f90502b /bin/grep /bin/grep
 COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc@sha256:58f16e69b626cfeed566288a6fe6d3950fb5601221bad4297474e7e93f90502b /bin/mkdir /bin/mkdir
+COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc@sha256:58f16e69b626cfeed566288a6fe6d3950fb5601221bad4297474e7e93f90502b /bin/sed /bin/sed
+COPY --from=nexus.ssf.sclzdev.net/dockerhub/busybox:1.36.0-uclibc@sha256:58f16e69b626cfeed566288a6fe6d3950fb5601221bad4297474e7e93f90502b /bin/chown /bin/chown
 USER 65532:0
 
 # ENTRYPOINT ["/gover"]
