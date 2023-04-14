@@ -1,5 +1,5 @@
 variables:
-  GOVER_VERSION: 0.1.5-4-update-versioning-for-branch-builds-alpha.2+85
+  GOVER_TAG: 0.1.5-4-update-versioning-for-branch-builds-alpha.2.build.85
   TAG_MESSAGE: "0.1.5-4-update-versioning-for-branch-builds-alpha.2+85 gover release. See CHANGELOG"
   RELEASE_DESCRIPTION: "Second alpha release of gover. Check release notes"
 
@@ -66,7 +66,7 @@ lint:
 generateVersion:
   stage: generateVersion
   image: 
-    name: ${CONTAINER_REGISTRY}/ssf-tools/gover:${GOVER_VERSION}
+    name: ${CONTAINER_REGISTRY}/ssf-tools/gover:${GOVER_TAG}
   script:
     - gover version -o _version.txt
   artifacts:
