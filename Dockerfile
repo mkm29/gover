@@ -18,10 +18,11 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
-COPY cmd cmd
-COPY pkg pkg
-COPY main.go main.go
-COPY internal internal
+COPY . . 
+# COPY cmd cmd
+# COPY pkg pkg
+# COPY main.go main.go
+# COPY internal internal
 
 # Build
 # the GOARCH has not a default value to allow the binary be built according to the host where the command

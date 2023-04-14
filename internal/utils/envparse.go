@@ -40,7 +40,7 @@ func parseError(line int, err error) error {
 	}
 }
 
-func getBranch(b string) string {
+func getBranch(b string, isMr bool) string {
 	/*
 		- if: "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
 		- if: '$CI_COMMIT_BRANCH == "dev"'
@@ -59,7 +59,10 @@ func getBranch(b string) string {
 	case "rc":
 		return fmt.Sprintf("rc-%s", branches[1])
 	default:
-		return fmt.Sprintf("mr-%d", cfg.Variables.MergeRequestIid)
+		if isMr {
+			return fmt.Sprintf("mr-%d", cfg.Variables.MergeRequestIid)
+		}
+		return cfg.Variables.CommitBranch
 	}
 }
 
@@ -81,16 +84,27 @@ func getTargetBranch() string {
 		log.Printf("PipelineSource: %+v\n", cfg.Variables.PipelineSource)
 	}
 	switch cfg.Variables.PipelineSource {
-	case "merge_request_event", "web", "trigger", "pipeline":
+	case "merge_request_event":
 		if cfg.Debug {
 			log.Println("merge request build")
 		}
-		tb = getBranch(cfg.Variables.MergeRequestTargetBranchName)
+		tb = getBranch(cfg.Variables.MergeRequestTargetBranchName, true)
+	case "web", "trigger", "pipeline":
+		if cfg.Debug {
+			log.Println("pipeline build")
+		}
+		tb = getBranch(cfg.Variables.CommitBranch, false)
+	case "push":
+		if cfg.Debug {
+			log.Println("push build")
+		}
+		log.Printf("CommitBranch: %+v\n", cfg.Variables.CommitBranch)
+		tb = getBranch(cfg.Variables.CommitBranch, false)
 	default:
 		if cfg.Debug {
 			log.Println("branch build")
 		}
-		tb = getBranch(cfg.Variables.CommitBranch)
+		tb = getBranch(cfg.Variables.CommitBranch, false)
 	}
 	// replace / with -
 	tb = strings.ReplaceAll(tb, "/", "-")
