@@ -143,7 +143,6 @@ build:
         }
       }
       EOF
-    # - chown $(id -u):$(id -g) _version.txt
     - export VERSION=$(cat _version.txt)
     - export IMAGE_TAG=$(echo $VERSION | sed 's/+/-build./g' || exit 1)
   script:
@@ -155,7 +154,6 @@ createGitTag:
   stage: createGitTag
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
   before_script:
-  # - chown $(id -u):$(id -g) _version.txt
   - export VERSION=$(cat _version.txt | sed -r 's/\+[0-9]*//g')
   script:
   - echo Creating tag $VERSION
@@ -176,7 +174,6 @@ createGitRelease:
   stage: createGitRelease
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
   before_script:
-  - chown $(id -u):$(id -g) _version.txt
   - export VERSION=$(cat _version.txt | sed -r 's/\+[0-9]*//g')
   script:
   - export RELEASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases"
