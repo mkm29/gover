@@ -90,7 +90,7 @@ pushBinNexus:
   stage: pushBinNexus
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
   before_script:
-  - chown $(id -u):$(id -g) _version.txt
+  # - chown $(id -u):$(id -g) _version.txt
   - export VERSION=$(cat _version.txt)
   script:
   - export BASE_RAW_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${VERSION}"
@@ -141,7 +141,7 @@ build:
         }
       }
       EOF
-    - chown $(id -u):$(id -g) _version.txt
+    # - chown $(id -u):$(id -g) _version.txt
     - export VERSION=$(cat _version.txt)
     - export IMAGE_TAG=$(echo $VERSION | sed 's/+/-build./g' || exit 1)
   script:
@@ -153,7 +153,7 @@ createGitTag:
   stage: createGitTag
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
   before_script:
-  - chown $(id -u):$(id -g) _version.txt
+  # - chown $(id -u):$(id -g) _version.txt
   - export VERSION=$(cat _version.txt | sed -r 's/\+[0-9]*//g')
   script:
   - echo Creating tag $VERSION
