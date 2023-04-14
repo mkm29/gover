@@ -89,8 +89,10 @@ buildBin:
 pushBinNexus:
   stage: pushBinNexus
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
-  script:
+  before_script:
+  - chmod $(id -u):$(id -g) _version.txt
   - export VERSION=$(cat _version.txt)
+  script:
   - export BASE_RAW_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${VERSION}"
   - echo Pushing binary to Nexus $REPO_URL
   - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-linux-amd64 "${BASE_RAW_URL}/${CI_PROJECT_NAME}-linux-amd64" -f 
@@ -139,6 +141,7 @@ build:
         }
       }
       EOF
+    - chmod $(id -u):$(id -g) _version.txt
     - export VERSION=$(cat _version.txt)
     - export IMAGE_TAG=$(echo $VERSION | sed 's/+/-build./g' || exit 1)
   script:
@@ -149,8 +152,10 @@ build:
 createGitTag:
   stage: createGitTag
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
-  script:
+  before_scripts:
+  - chmod $(id -u):$(id -g) _version.txt
   - export VERSION=$(cat _version.txt | sed -r 's/\+[0-9]*//g')
+  script:
   - echo Creating tag $VERSION
   - |
     cat > tag.json << EOF
@@ -168,10 +173,12 @@ createGitTag:
 createGitRelease:
   stage: createGitRelease
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
+  before_script:
+  - chmod $(id -u):$(id -g) _version.txt
+  - export VERSION=$(cat _version.txt | sed -r 's/\+[0-9]*//g')
   script:
   - export RELEASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases"
   - export BASE_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${VERSION}"
-  - export VERSION=$(cat _version.txt | sed -r 's/\+[0-9]*//g')
   - |
     cat > release.json << EOF
     {
