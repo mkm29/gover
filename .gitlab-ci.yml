@@ -152,7 +152,7 @@ build:
 createGitTag:
   stage: createGitTag
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
-  before_scripts:
+  before_script:
   - chmod $(id -u):$(id -g) _version.txt
   - export VERSION=$(cat _version.txt | sed -r 's/\+[0-9]*//g')
   script:
