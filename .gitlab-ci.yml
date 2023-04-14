@@ -69,7 +69,9 @@ generateVersion:
     name: ${CONTAINER_REGISTRY}/ssf-tools/gover:${GOVER_TAG}
   script:
     - gover version -o _version.txt
+    - chown root:root _version.txt
   artifacts:
+    untracked: true
     paths:
       - _version.txt
 
