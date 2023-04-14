@@ -90,7 +90,6 @@ pushBinNexus:
   stage: pushBinNexus
   image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
   before_script:
-  - sudo chown $(id -u):$(id -g) _version.txt
   - export VERSION=$(cat _version.txt)
   script:
   - export BASE_RAW_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${VERSION}"

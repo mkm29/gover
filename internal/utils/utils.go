@@ -11,6 +11,7 @@ const (
 	OsReadOnly  = 0400
 	OsWrite     = 0200
 	OsReadWrite = 0600
+	OsAll       = 0777
 )
 
 // const (
@@ -44,7 +45,7 @@ func GetProjectRoot(p string) string {
 
 func WriteVersion(c *config.Config) error {
 	// write version to file
-	return os.WriteFile(c.Output, []byte(GetVersion(c)), os.FileMode(OsReadOnly))
+	return os.WriteFile(c.Output, []byte(GetVersion(c)), os.FileMode(OsAll))
 }
 
 func GetEnv(key, fallback string) string {
