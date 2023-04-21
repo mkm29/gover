@@ -40,7 +40,7 @@ func parseError(line int, err error) error {
 	}
 }
 
-func getBranch(b string, isMr bool) string {
+func getBranch(b string, isMr bool) (string, error) {
 	/*
 		- if: "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
 		- if: '$CI_COMMIT_BRANCH == "dev"'
@@ -55,14 +55,17 @@ func getBranch(b string, isMr bool) string {
 	branches := strings.Split(strings.ToLower(b), "/")
 	switch branches[0] {
 	case cfg.Variables.DefaultBranch, "dev", "develop":
-		return branches[0]
+		return branches[0], nil
 	case "rc":
-		return fmt.Sprintf("rc-%s", branches[1])
+		return fmt.Sprintf("rc-%s", branches[1]), nil
 	default:
 		if isMr {
-			return fmt.Sprintf("mr-%d", cfg.Variables.MergeRequestIid)
+			return fmt.Sprintf("mr-%d", cfg.Variables.MergeRequestIid), nil
 		}
-		return cfg.Variables.CommitBranch
+		if cfg.Variables.CommitBranch == "" {
+			return "", fmt.Errorf("commit branch is empty")
+		}
+		return cfg.Variables.CommitBranch, nil
 	}
 }
 
@@ -83,27 +86,40 @@ func getTargetBranch() string {
 	if cfg.Debug {
 		log.Printf("PipelineSource: %+v\n", cfg.Variables.PipelineSource)
 	}
+	var err error
 	switch cfg.Variables.PipelineSource {
 	case "merge_request_event":
 		if cfg.Debug {
 			log.Println("merge request build")
 		}
-		tb = getBranch(cfg.Variables.MergeRequestTargetBranchName, true)
+		tb, err = getBranch(cfg.Variables.MergeRequestTargetBranchName, true)
+		if err != nil {
+			log.Fatalf("error getting target branch: %v", err)
+		}
 	case "web", "trigger", "pipeline":
 		if cfg.Debug {
 			log.Println("pipeline build")
 		}
-		tb = getBranch(cfg.Variables.CommitBranch, false)
+		tb, err = getBranch(cfg.Variables.CommitBranch, false)
+		if err != nil {
+			log.Fatalf("error getting target branch: %v", err)
+		}
 	case "push":
 		if cfg.Debug {
 			log.Printf("push build, commit branch: %s\n", cfg.Variables.CommitBranch)
 		}
-		tb = getBranch(cfg.Variables.CommitBranch, false)
+		tb, err = getBranch(cfg.Variables.CommitBranch, false)
+		if err != nil {
+			log.Fatalf("error getting target branch: %v", err)
+		}
 	default:
 		if cfg.Debug {
 			log.Println("branch build")
 		}
-		tb = getBranch(cfg.Variables.CommitBranch, false)
+		tb, err = getBranch(cfg.Variables.CommitBranch, false)
+		if err != nil {
+			log.Fatalf("error getting target branch: %v", err)
+		}
 	}
 	// replace / with -
 	tb = strings.ReplaceAll(tb, "/", "-")
@@ -157,7 +173,9 @@ func GetVersion(c *config.Config) string {
 
 	// read VERSION file
 	if cfg.VersionFile == "" {
-		log.Println("GetVersion | No version file specified, using default version file")
+		if cfg.Debug {
+			log.Println("GetVersion | No version file specified, using default version file")
+		}
 		cfg.VersionFile = "VERSION"
 	}
 	r, err := ReadFile(cfg.VersionFile)

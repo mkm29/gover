@@ -37,7 +37,11 @@ PATCH=3
 
 	cc := `CI_DEFAULT_BRANCH=master
 CI_MERGE_REQUEST_TARGET_BRANCH_NAME=test
-CI_PIPELINE_IID=1`
+CI_PIPELINE_IID=1
+CI_PIPELINE_SOURCE=merge_event
+CI_PIPELINE_TRIGGERED=true
+CI_MERGE_REQUEST_IID=1
+CI_COMMIT_BRANCH=test-branch`
 	err = createFile("config.env", cc)
 	requires.NoError(err)
 	// initialize config
@@ -84,8 +88,8 @@ func (s *UnitTestSuite) TestGetVersion() {
 	s.Require().NoError(err)
 	cfg.VersionFile = "testdata/version"
 	version := utils.GetVersion(cfg)
-	// make sure version contains 1.2.3
-	s.Assert().Contains(version, "1.2.3")
+	// make sure version equals 1.2.3-test-branch+1
+	s.Assert().Equal("1.2.3-test-branch+1", version)
 }
 
 func (s *UnitTestSuite) TearDownSuite() {

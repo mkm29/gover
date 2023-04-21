@@ -40,6 +40,10 @@ build: ## Build Go binary for current OS and Platform
 	echo "Building for current OS and Platform"
 	CGO_ENABLED=0 GOOS=${OS} GOARCH=$(ARCH) go build -a -o bin/"$(APP)-$(OS)-$(ARCH)" main.go
 
+install: build ## Install Go binary for current OS and Platform
+	echo "Installing for current OS and Platform"
+	go install
+
 compile: ## Compile Go binary for every OS and Platform
 	echo "Compiling for every OS and Platform"
 	GOOS=darwin GOARCH=amd64 go build -o bin/$(APP)-darwin-amd64 main.go

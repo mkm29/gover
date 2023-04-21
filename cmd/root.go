@@ -11,84 +11,25 @@ import (
 	"github.com/spf13/viper"
 )
 
-var cfg *config.Config
-
-// Build the cobra command that handles our command line tool.
-func NewRootCommand() *cobra.Command {
-	// Store the result of binding cobra flags and viper config. In a
-	// real application these would be data structures, most likely
-	// custom structs per command. This is simplified for the demo app and is
-	// not recommended that you use one-off variables. The point is that we
-	// aren't retrieving the values directly from viper or flags, we read the values
-	// from standard Go data structures.
-
-	debug := false
-
-	rootCmd := &cobra.Command{
+var (
+	cfg     *config.Config
+	debug   bool
+	output  string
+	version string
+	rootCmd = &cobra.Command{
 		Use:   "gover",
 		Short: "gover is a tool to get project version",
 		Long:  `gover gets the project vertsion using a combination of a VERSION file as well as GitLab CI/CD variables`,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
-			if cfg == nil {
-				c, err := initializeConfig(cmd)
-				if err != nil {
-					return err
-				}
-				cfg = c
-			}
-			cfg.Debug = debug
-			ok, mv := cfg.CheckVariables()
-			if !ok {
-				log.Fatalf("Missing variables: %v", mv)
-			}
-			return nil
-		},
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := cmd.Help(); err != nil {
 				log.Fatal(err)
 			}
 		},
 	}
-
-	// Define cobra flags, the default value has the lowest (least significant) precedence
-	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debug output")
-
-	rootCmd.AddCommand(NewVersionCommand())
-	return rootCmd
-}
-
-// Build the cobra command that handles our command line tool.
-func NewVersionCommand() *cobra.Command {
-	// Store the result of binding cobra flags and viper config. In a
-	// real application these would be data structures, most likely
-	// custom structs per command. This is simplified for the demo app and is
-	// not recommended that you use one-off variables. The point is that we
-	// aren't retrieving the values directly from viper or flags, we read the values
-	// from standard Go data structures.
-
-	// Define our command
-	output := ""
-	version := ""
-	versionCmd := &cobra.Command{
+	versionCmd = &cobra.Command{
 		Use:   "version",
 		Short: "Print the version number of gover",
 		Long:  `All software has versions. This is gover's`,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			// call parent PersistentPreRunE
-			if err := cmd.Parent().PersistentPreRunE(cmd, args); err != nil {
-				return err
-			}
-			// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
-			if cfg != nil {
-				if output != "" {
-					cfg.Output = output
-				}
-			} else {
-				return fmt.Errorf("config is nil")
-			}
-			return nil
-		},
 		Run: func(cmd *cobra.Command, args []string) {
 			// Working with OutOrStdout/OutOrStderr allows us to unit test our command easier
 			out := cmd.OutOrStdout()
@@ -113,27 +54,35 @@ func NewVersionCommand() *cobra.Command {
 			}
 		},
 	}
-
-	// Define cobra flags, the default value has the lowest (least significant) precedence
-	versionCmd.Flags().StringVarP(&output, "output", "o", "", "File to output version to")
-	versionCmd.Flags().StringVarP(&version, "version", "v", "VERSION", "Version file to use")
-	return versionCmd
+) // Execute executes the root command.
+func Execute() error {
+	return rootCmd.Execute()
 }
 
-func initializeConfig(cmd *cobra.Command) (*config.Config, error) {
+func init() {
+	cobra.OnInitialize(initConfig)
+
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debug output")
+	versionCmd.PersistentFlags().StringVarP(&output, "output", "o", "", "Output file")
+	rootCmd.AddCommand(versionCmd)
+}
+
+func initConfig() {
 	v := viper.New()
 
 	// Initialize config
 	config.Init()
 	c, err := config.LoadConfig()
 	if err != nil {
-		return nil, err
+		log.Fatalf("Error loading config: %v", err)
 	}
 
 	// Bind the current command's flags to viper
-	bindFlags(cmd, v)
-
-	return c, nil
+	bindFlags(rootCmd, v)
+	bindFlags(versionCmd, v)
+	c.Debug = debug
+	c.Output = output
+	cfg = c
 }
 
 // Bind each cobra flag to its associated viper configuration (config file and environment variable)
