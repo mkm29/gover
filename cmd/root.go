@@ -86,7 +86,7 @@ func NewVersionCommand() *cobra.Command {
 				if output != "" {
 					cfg.Output = output
 				} else {
-					cfg.Output = "VERSION"
+					cfg.Output = "_version.txt"
 				}
 			} else {
 				return fmt.Errorf("config is nil")
