@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"gover/internal/config"
 	"gover/internal/utils"
-	"gover/pkg/config"
 	"os"
 	"testing"
 
