@@ -9,12 +9,16 @@ import (
 
 var cfg *Config
 
-func init() {
+func Init() {
 	cfg = &Config{
+		// TODO: look and see which variables are truly required
 		requiredVars: map[string]string{
 			"CI_DEFAULT_BRANCH":                   "DefaultBranch",
 			"CI_MERGE_REQUEST_TARGET_BRANCH_NAME": "MergeRequestTargetBranchName",
 			"CI_PIPELINE_IID":                     "PipelineIid",
+			"CI_PIPELINE_SOURCE":                  "PipelineSource",
+			"CI_COMMIT_BRANCH":                    "CommitBranch",
+			"CI_PIPELINE_TRIGGERED":               "PipelineTriggered",
 		},
 		Debug: false,
 	}
@@ -35,8 +39,10 @@ func LoadConfig(args ...string) (config *Config, err error) {
 	}
 	v.AutomaticEnv()
 	if len(args) == 0 {
-		for ev, _ := range cfg.requiredVars {
-			v.BindEnv(ev)
+		for _, ev := range AllVariables {
+			if err := v.BindEnv(ev); err != nil {
+				return nil, err
+			}
 		}
 	}
 	// set defaults
@@ -58,7 +64,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("CI_BUILDS_DIR", "/builds")
 }
 
-func (c *Config) CheckVariables() (bool, []string) {
+func (c *Config) CheckVariables() (ok bool, vars []string) {
 	// check if necessary variables are set
 	var missing []string
 	metaValue := reflect.ValueOf(c.Variables).Elem()

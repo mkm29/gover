@@ -2,10 +2,23 @@ package utils
 
 import (
 	"fmt"
-	"io/ioutil"
+	"gover/pkg/config"
 	"os"
-	"path"
+	fp "path"
 )
+
+const (
+	OsReadOnly  = 0400
+	OsWrite     = 0200
+	OsReadWrite = 0600
+	OsAll       = 0777
+)
+
+// const (
+// 	OS_READ_ONLY  = 0400
+// 	OS_WRITE_ONLY = 0200
+// 	OS_READ_WRITE = 0600
+// )
 
 func ReadFile(path string) ([]byte, error) {
 	// read file
@@ -14,7 +27,7 @@ func ReadFile(path string) ([]byte, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, fmt.Errorf("file does not exist: %s", path)
 	}
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -27,5 +40,18 @@ func GetProjectRoot(p string) string {
 		panic(err)
 	}
 
-	return path.Join(dirname, p)
+	return fp.Join(dirname, p)
+}
+
+func WriteVersion(c *config.Config) error {
+	// write version to file
+	return os.WriteFile(c.Output, []byte(GetVersion(c)), os.FileMode(OsAll))
+}
+
+func GetEnv(key, fallback string) string {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	return v
 }

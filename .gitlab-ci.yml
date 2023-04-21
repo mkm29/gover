@@ -1,12 +1,21 @@
-variables: {}
+variables:
+  GOVER_TAG: 0.1.5-4-update-versioning-for-branch-builds-alpha.3-build.85
+  TAG_MESSAGE: "0.1.5-4-update-versioning-for-branch-builds-alpha.2+85 gover release. See CHANGELOG"
+  RELEASE_DESCRIPTION: "Second alpha release of gover. Check release notes"
 
 stages:
+  - lint
+  - generateVersion
   - buildBin
   - pushBinNexus
+  - gotest
   - build
+  - createGitTag
   - createGitRelease
-  - security_scan
-  - test
+#   - twistlock_scan
+#   - twistlock_to_hdf
+  - sast
+
 include:
   - project: "SSF/SSF-Tools/ci-templates"
     ref: v0.0.8
@@ -15,6 +24,7 @@ include:
       - "workflow.yml"
       - "/jobs/build/docker_build.yml"
       - "/jobs/security_scan/twistlock.yml"
+      - "/jobs/security_scan/sonarqube.yml"
 
 
 ###################################################################
@@ -35,69 +45,179 @@ include:
 # releaseArtifact2nexus_script zips up all artifacts and only pushes one, this will not work
 # when you want to link to specific artifacts...
 
+lint:
+  image:  ${BASE_REGISTRY}/ssf-tools/golangci-lint:v1.52.2
+  # registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
+  stage: lint
+  script:
+    # Use default .golangci.yml file from the image if one is not present in the project root.
+    - '[ -e .golangci.yml ] || cp /golangci/.golangci.yml .'
+    # Write the code coverage report to gl-code-quality-report.json
+    # and print linting issues to stdout in the format: path/to/file:line description
+    # remove `--issues-exit-code 0` or set to non-zero to fail the job if linting issues are detected
+    - golangci-lint run --issues-exit-code 0 --print-issued-lines=false --out-format code-climate:gl-code-quality-report.json,line-number
+  artifacts:
+    reports:
+      codequality: gl-code-quality-report.json
+    paths:
+      - gl-code-quality-report.json
+
+
+generateVersion:
+  stage: generateVersion
+  image: 
+    name: ${CONTAINER_REGISTRY}/ssf-tools/gover:${GOVER_TAG}
+  script:
+    - gover version -o _version.txt
+  artifacts:
+    paths:
+      - _version.txt
+
 buildBin:
   stage: buildBin
-  image: ${BASE_REGISTRY}/dockerhub/golang:1.20.2 
+  image: ${CONTAINER_REGISTRY}/dockerhub/golang:1.20.2 
   script:
   - echo Building linux/amd64 binary
   - GOOS=linux GOARCH=amd64 go build -o bin/${CI_PROJECT_NAME}-linux-amd64 main.go
+  - GOOS=darwin GOARCH=arm64 go build -o bin/${CI_PROJECT_NAME}-darwin-arm64 main.go
   artifacts:
     paths:
     - bin/${CI_PROJECT_NAME}-linux-amd64
+    - bin/${CI_PROJECT_NAME}-darwin-arm64
     expire_in: 1 day
   
 pushBinNexus:
   stage: pushBinNexus
-  image: ${BASE_REGISTRY}/dockerhub/curlimages/curl:8.00.1
+  image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
+  before_script:
+  - id
+  - ls -l 
+  - export VERSION=$(cat _version.txt)
   script:
-  - export REPO_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${Version}/${CI_PROJECT_NAME}-linux-amd64"
+  - if [ -z $VERSION]; then exit 1; fi
+  - export BASE_RAW_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${VERSION}"
   - echo Pushing binary to Nexus $REPO_URL
-  - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-linux-amd64 "${REPO_URL}" -f 
+  - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-linux-amd64 "${BASE_RAW_URL}/${CI_PROJECT_NAME}-linux-amd64" -f 
+  - curl --user ${NEXUS_USER}:${NEXUS_PASS} --upload-file bin/${CI_PROJECT_NAME}-darwin-arm64 "${BASE_RAW_URL}/${CI_PROJECT_NAME}-darwin-arm64" -f 
 
-# version_check happens in stage: build. This is very misleading, it also builds an OCI image, so
-# this should be explicitly defined as dockerBuild and version_check should be its own stage 
+gotest:
+  stage: gotest
+  image: ${CONTAINER_REGISTRY}/dockerhub/golang:1.20.2 
+  script:
+    - go install
+    - go test ./... -v -coverpkg=./... -coverprofile=coverage.txt -covermode count
+    - go get github.com/boumenot/gocover-cobertura
+    - go run github.com/boumenot/gocover-cobertura < coverage.txt > coverage.xml
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
+# Gitlab Anchor called &kaniko-build
+.kaniko-build: &kaniko-build
+  - |
+    /kaniko/executor --context $CI_PROJECT_DIR \
+    --dockerfile Dockerfile \
+    --destination $CONTAINER_REGISTRY/ssf-tools/$CI_PROJECT_NAME:$IMAGE_TAG \
+    --build-arg TARGETOS=linux \
+    --build-arg TARGETARCH=amd64 \
+    --label COMMIT_SHA=$CI_COMMIT_SHA \
+    --label VERSION=$VERSION \
+    --label BUILD=$CI_PIPELINE_IID \
+    --label MAINTAINER="Mitchell Murphy<mitchell.k.murphy.ctr@socom.mil"
+# Jobs
 build:
-  extends: .docker_build
+  stage: build
+  image: 
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  before_script:
+    - |
+      cat <<EOF > /kaniko/.docker/config.json
+      {
+        "auths": {
+          "$CONTAINER_REGISTRY": {
+            "auth": "$CONTAINER_REGISTRY_TOKEN"
+          }
+        }
+      }
+      EOF
+    - export VERSION=$(cat _version.txt)
+    - export IMAGE_TAG=$(echo $VERSION | sed 's/+/-build./g' || exit 1)
+  script:
+    - *kaniko-build
+  # only:
+  #   - main
+
+createGitTag:
+  stage: createGitTag
+  image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
+  before_script:
+  - export VERSION=$(cat _version.txt | sed -r 's/\+[0-9]*//g')
+  script:
+  - echo Creating tag $VERSION
+  - |
+    cat > tag.json << EOF
+    {
+      "tag_name": "$VERSION",
+      "ref": "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME",
+      "message": "$TAG_MESSAGE"
+    }
+    EOF
+  - |
+    curl --header 'Content-Type: application/json' --header "PRIVATE-TOKEN: $GOVER_TOKEN" \
+    -d @tag.json "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/repository/tags"
+
 
 createGitRelease:
   stage: createGitRelease
-  image: ${BASE_REGISTRY}/dockerhub/curlimages/curl:8.00.1
+  image: ${CONTAINER_REGISTRY}/dockerhub/curlimages/curl:8.00.1
+  before_script:
+  - export VERSION=$(cat _version.txt | sed -r 's/\+[0-9]*//g')
   script:
   - export RELEASE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases"
-  - export BASE_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${Version}"
+  - export BASE_URL="https://${NEXUS_URL}/repository/${RELEASE_RAW}/${CI_PROJECT_NAME}/bin/${VERSION}"
   - |
     cat > release.json << EOF
     {
-      "name": "$Version", 
-      "tag_name": "$Version",
-      "ref": "$Version",
+      "name": "$VERSION", 
+      "tag_name": "$VERSION",
+      "ref": "$VERSION",
       "description": "$RELEASE_DESCRIPTION",
       "assets": { 
         "links": [
-          { "name": "$CI_PROJECT_NAME-linux-amd64", "url": "$BASE_URL/$CI_PROJECT_NAME-linux-amd64", "link_type":"other" }
+          { "name": "$CI_PROJECT_NAME-linux-amd64", "url": "$BASE_URL/$CI_PROJECT_NAME-linux-amd64", "link_type":"other" },
+          { "name": "$CI_PROJECT_NAME-darwin-arm64", "url": "$BASE_URL/$CI_PROJECT_NAME-darwin-arm64", "link_type":"other" }
         ]
       }
     }
     EOF
   - |
-    curl --header 'Content-Type: application/json' --header "PRIVATE-TOKEN: ${GOVAR_TOKEN}" \
+    curl --header 'Content-Type: application/json' --header "PRIVATE-TOKEN: $GOVER_TOKEN" \
     -d @release.json ${RELEASE_URL}
 
-twistlock_scan:
-  extends: .twistlock_scan
-#  The below items are needed per multi-build variant.
+# twistlock_scan:
+#   extends: .twistlock_scan
+# #  The below items are needed per multi-build variant.
+# #   variables:
+# #     DOCKER_VARIANT: variant-tag
+
+# twistlock_to_hdf:
+#   extends: .twistlock_to_hdf
 #   variables:
-#     DOCKER_VARIANT: variant-tag
+#     TWISTLOCK_SCAN_JOB_NAME: twistlock_scan
 
-twistlock_to_hdf:
-  extends: .twistlock_to_hdf
-  variables:
-    TWISTLOCK_SCAN_JOB_NAME: twistlock_scan
-
-mega-linter:
-  stage: test
-  image: ${BASE_REGISTRY}/dockerhub/nvuillam/mega-linter-python:v4
-  script: ["/bin/bash /entrypoint.sh"]
-  variables:
-    DEFAULT_WORKSPACE: $CI_PROJECT_DIR
-    ENABLE: JSON
+# mega-linter:
+#   stage: test
+#   image: ${CONTAINER_REGISTRY}/dockerhub/nvuillam/mega-linter-python:v4
+#   script: ["/bin/bash /entrypoint.sh"]
+#   variables:
+#     DEFAULT_WORKSPACE: $CI_PROJECT_DIR
+#     ENABLE: JSON
+sast:
+  stage: sast
+  before_script:
+  - export VERSION=`cat _version.txt`
+  - sed -i 's/${PROJECT_VERSION}/${VERSION}/g' sonar-project.properties
+  extends: .sonarqube

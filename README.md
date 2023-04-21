@@ -1,5 +1,8 @@
 # Gover
 
+[![pipeline status](https://code.sclzdev.net/ssf/ssf-tools/gover/badges/main/pipeline.svg)](https://code.sclzdev.net/ssf/ssf-tools/gover/-/commits/main) 
+[![coverage report](https://code.sclzdev.net/ssf/ssf-tools/gover/badges/main/coverage.svg)](https://code.sclzdev.net/ssf/ssf-tools/gover/-/commits/main) [![Latest Release](https://code.sclzdev.net/ssf/ssf-tools/gover/-/badges/release.svg)](https://code.sclzdev.net/ssf/ssf-tools/gover/-/releases)
+
 ```yaml
 Author: Mitch Murphy
 Date: 28 March 2023
@@ -48,3 +51,29 @@ v0.1.3
 ```
 
 _Note_ that with how `MCS-COP` versions software (ie. `8.1.0`, `8.2.1`, etc.) this directly conflicts with [SemVer](https://semver.org). This needs to be addresses.
+
+## Docker
+
+Take a look at the [build](build.sh) script for more information on building an OCI image for platforms other than amd64.
+
+## Sonarqube
+
+Running Sonarqube locally (using a Docker container) is easy. Just run the `sonarqube:lts-community` image and make sure that there is a `sonar-project.properties` file at the project root.
+
+### Run Server
+
+You can run a simple local server using the Docker container:
+
+```bash
+docker run -d -p 9000:9000 sonarqube:lts-community
+```
+
+Once running, please visit `http://localhost:9000` and login with the default admin credetials of `admin:admin`. Then, create a project (gover) and generate a token. Add this token to the `sonar-project.properties` file (under `sonar.login`). 
+
+### Sonar-scanner
+
+Either install the binary locally, or use the Docker scanning container.
+
+#### Mac OS X
+
+Simply install with brew: `brew install sonar-scanner`. You can then scan by just calling `sonar-scanner`, and that will ingest the `sonar-project.properties` file, scan and upload the results to the local Sonarqube server.

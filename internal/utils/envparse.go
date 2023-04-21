@@ -40,28 +40,98 @@ func parseError(line int, err error) error {
 	}
 }
 
+func getBranch(b string, isMr bool) string {
+	/*
+		- if: "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
+		- if: '$CI_COMMIT_BRANCH == "dev"'
+		- if: '$CI_COMMIT_BRANCH == "develop"'
+		- if: "$CI_COMMIT_BRANCH =~ /^RC/"
+	*/
+	// if branch is one of the above return
+	// convert branch to lowercase
+	if cfg.Debug {
+		log.Printf("Branch: %+v\n", b)
+	}
+	branches := strings.Split(strings.ToLower(b), "/")
+	switch branches[0] {
+	case cfg.Variables.DefaultBranch, "dev", "develop":
+		return branches[0]
+	case "rc":
+		return fmt.Sprintf("rc-%s", branches[1])
+	default:
+		if isMr {
+			return fmt.Sprintf("mr-%d", cfg.Variables.MergeRequestIid)
+		}
+		return cfg.Variables.CommitBranch
+	}
+}
+
+/*
+	- if: "$CI_COMMIT_BRANCH =~ /^Release/"
+	- if: "$CI_COMMIT_BRANCH =~ /^release/"
+*/
+
+func getTargetBranch() string {
+	/*
+			Need to distinguish between a branch build and a merge request build
+			- if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+		    - if: $CI_PIPELINE_SOURCE == 'web'
+		    - if: $CI_PIPELINE_SOURCE == 'trigger'
+		    - if: $CI_PIPELINE_SOURCE == 'pipeline'
+	*/
+	var tb string
+	if cfg.Debug {
+		log.Printf("PipelineSource: %+v\n", cfg.Variables.PipelineSource)
+	}
+	switch cfg.Variables.PipelineSource {
+	case "merge_request_event":
+		if cfg.Debug {
+			log.Println("merge request build")
+		}
+		tb = getBranch(cfg.Variables.MergeRequestTargetBranchName, true)
+	case "web", "trigger", "pipeline":
+		if cfg.Debug {
+			log.Println("pipeline build")
+		}
+		tb = getBranch(cfg.Variables.CommitBranch, false)
+	case "push":
+		if cfg.Debug {
+			log.Printf("push build, commit branch: %s\n", cfg.Variables.CommitBranch)
+		}
+		tb = getBranch(cfg.Variables.CommitBranch, false)
+	default:
+		if cfg.Debug {
+			log.Println("branch build")
+		}
+		tb = getBranch(cfg.Variables.CommitBranch, false)
+	}
+	// replace / with -
+	tb = strings.ReplaceAll(tb, "/", "-")
+	return tb
+}
+
+func isReleaseBranch() bool {
+	// cfg.Variables.DefaultBranch || strings.Contains(strings.ToLower(tb), "release"
+	return (strings.Contains(strings.ToLower(cfg.Variables.MergeRequestTargetBranchName), "release") ||
+		strings.Contains(strings.ToLower(cfg.Variables.CommitBranch), "release"))
+}
+
 func (v *Version) String() string {
 	// 1. construct base version string
 	base := fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
-	// split MergeRequestTargetBranchName on /
-	targetBranch := strings.Split(strings.ToLower(cfg.Variables.MergeRequestTargetBranchName), "/")
-	// TODO: handle error when unable to split?
-	var tb string
-	if len(targetBranch) == 1 {
-		tb = targetBranch[0]
-	} else if len(targetBranch) == 2 {
-		tb = fmt.Sprintf("%s-%s", targetBranch[0], targetBranch[1])
-	}
-	if cfg.Debug {
-		log.Printf("targetBranch: %s\n", targetBranch)
-	}
+
 	// 2. if on defalt or release branch return version string
-	if tb == cfg.Variables.DefaultBranch || strings.Contains(tb, "release") {
+	if isReleaseBranch() {
 		return fmt.Sprintf("v%s", base)
-	} else {
-		// 3. if target branch is not default branch, append branch to base
-		base = fmt.Sprintf("%s-%s", base, tb)
 	}
+	// split MergeRequestTargetBranchName on /
+	tb := getTargetBranch()
+	if cfg.Debug {
+		log.Printf("targetBranch: %s\n", tb)
+	}
+
+	// 3. if target branch is not default branch, append branch to base
+	base = fmt.Sprintf("%s-%s", base, tb)
 	// 4. check if we need to append additional options
 	if v.Additional != "" {
 		base = fmt.Sprintf("%s-%s", base, v.Additional)
@@ -81,15 +151,19 @@ func GetVersion(c *config.Config) string {
 	env := make(map[string]string)
 	vr := Version{
 		Major: 0,
-		Minor: 1,
+		Minor: 0,
 		Patch: 0,
 	}
 
 	// read VERSION file
-	r, err := ReadFile(fmt.Sprintf("%s/%s", GetProjectRoot("./"), "VERSION"))
+	if cfg.VersionFile == "" {
+		log.Println("GetVersion | No version file specified, using default version file")
+		cfg.VersionFile = "VERSION"
+	}
+	r, err := ReadFile(cfg.VersionFile)
 	if err != nil {
-		log.Fatalln(err)
-		return vr.String()
+		log.Printf("File: %s | %s\n", cfg.VersionFile, err)
+		return fmt.Sprintf("0.0.0+%d", cfg.Variables.PipelineIid)
 	}
 
 	scanner := bufio.NewScanner(bytes.NewReader(r))
@@ -100,8 +174,9 @@ func GetVersion(c *config.Config) string {
 	// Main scan loop
 	for scanner.Scan() {
 		i++
-		k, v, err := parseLine(scanner.Bytes())
-		if err != nil {
+		k, v, e := parseLine(scanner.Bytes())
+		if e != nil {
+			log.Println(parseError(i, e))
 			return vr.String()
 		}
 
@@ -110,8 +185,8 @@ func GetVersion(c *config.Config) string {
 			env[string(k)] = string(v)
 		}
 	}
-	if err := scanner.Err(); err != nil {
-		log.Println(parseError(i, err))
+	if e := scanner.Err(); e != nil {
+		log.Println(parseError(i, e))
 		return vr.String()
 	}
 	i, err = strconv.Atoi(env["MAJOR"])
@@ -122,6 +197,7 @@ func GetVersion(c *config.Config) string {
 	}
 	i, err = strconv.Atoi(env["MINOR"])
 	if err != nil {
+		log.Println(err)
 		vr.Minor = 0
 	} else {
 		vr.Minor = i
@@ -132,13 +208,17 @@ func GetVersion(c *config.Config) string {
 	} else {
 		vr.Patch = i
 	}
-	if env["ADDOPTS"] != "" {
+	if env["ADDOPTS"] != "" && !strings.Contains(env["ADDOPTS"], "#") {
 		vr.Additional = env["ADDOPTS"]
 	}
 	return vr.String()
 }
 
-func parseLine(line []byte) ([]byte, []byte, error) {
+func parseLine(line []byte) (keys, values []byte, e error) {
+	// if line contains a #, return (ignore line)
+	if i := bytes.IndexByte(line, '#'); i >= 0 {
+		return nil, nil, nil
+	}
 	// Find the first equals sign
 	i := bytes.IndexByte(line, '=')
 	if i < 0 {
@@ -170,5 +250,9 @@ func parseLine(line []byte) ([]byte, []byte, error) {
 
 func validKey(k []byte) bool {
 	// key must either be MAJOR, MINOR, PATCH or ADDOPTS
-	return bytes.Equal(k, []byte("MAJOR")) || bytes.Equal(k, []byte("MINOR")) || bytes.Equal(k, []byte("PATCH")) || bytes.Equal(k, []byte("ADDOPTS"))
+	return bytes.Equal(k,
+		[]byte("MAJOR")) ||
+		bytes.Equal(k, []byte("MINOR")) ||
+		bytes.Equal(k, []byte("PATCH")) ||
+		bytes.Equal(k, []byte("ADDOPTS"))
 }

@@ -1,2 +1,7 @@
 bin/
 .DS_Store
+.vscode/
+.scannerwork
+reports/
+testdata/
+# _version.txt

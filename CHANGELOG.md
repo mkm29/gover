@@ -3,10 +3,75 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5-4-update-versioning-for-branch-builds-alpha.2] - 2023-04-15
+
+## Changed
+
+- Updated logic for creating version for branch build versus merge request (using `CI_PIPELINE_SOURCE`)
+- Allow printing version to stdout (not just to a file). Before, was overwriting the `VERSION` file, now if no `--version` flag is specified will default to outputing to `_version.txt`
+
+## [0.1.5-alpha.1] - 2023-04-10
+
+## Changed
+
+- Linted entire project (using `golangci-lint`)
+  - Check all errors
+  - Name return arguments in function signatures
+  - Changed internal spelling of types to match correct naming (eh. `ProjectId` -> `ProjectID`)
+- config
+  - Turned package initializer into package function (`init` -> `Init`)
+- main
+  - Main entrypoint/function only calls `rootCmd.Execute()`
+- `sonar-project.properties`: uupdated hostUrl and projectKey
+
+## Added
+
+- cmd
+  - Turn command variables (such as `rootCmd`) into contructor functions (`NewRootCmd(cfg *config.Config)`)
+  - `initializeConfig` function to bootstrap/bind Cobra and Viper (auto-marshal environment variables into Go structs)
+- internal
+  - Created `const` values (octal) for OS filemode permissions
+- `.gitlab-ci.yml`: Added linting stage
+- Created `Dockerfile` for to house `golangci-lint`, build on Iron Bank Go image (v1.20.2)
+- Created configuration file for golang-ci (`.golangci.yml`)
+
+## [0.1.4] - 2023-03-31
+
+## Changed
+
+- Updated `.gitlab-ci.yml` file to build, tag and push Docker image using Kaniko; automatically create Git tag and release
+
 ## [Unreleased]
 
+## [0.1.3] - 2023-03-28
 
-## [0.1.1-alpha.1] - 2023-03-28
+## Added
+
+- `sonar-project.properties` file.
+- Created `WriteVersion` function in `utils` package. If the output flag is specified this will write the version to a file.
+- Created `initializeCommand` to call `config.LoadConfig` as well as `bindFlags` to bind any Cobra flags to the Viper instance
+
+## Changed
+
+- Added `debug/d` flag to root command
+- Added `output/o` flag to version subcommand
+- Copy over the `mkdir` and `grep` binaries from the `busybox` image in Dockerfile (needed to run Gitlab CI). This should be addressed as nothing should need to be on the distroless image except the `gover` binary
+- Created `initializeConfig` and `bindFlags` functions to 
+- Moved all Viper initialization from `main` to `cmd.initializeCommand`
+- Make sure to call the parents' `PersistentPreRunE` function in the version child command to initialize the configuration (Viper)
+
+### Fixed
+
+- Addressed error in parsing `VERSION` file when line is commented out (using a `#`)
+
+## [0.1.2] - 2023-03-28
+
+### fixed
+
+- If `VERSION` file does not exists, return `0.0.0+<PipelineIid>`
+- Added Docker instructions for building on Apple Silicon (enable multiplatform builds).
+
+## [0.1.0] - 2023-03-27
 
 ### Added
 
