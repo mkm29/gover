@@ -5,8 +5,7 @@ import (
 )
 
 func main() {
-	rootCmd := cmd.NewRootCommand()
-	if e := rootCmd.Execute(); e != nil {
-		panic(e)
+	if err := cmd.Execute(); err != nil {
+		panic(err)
 	}
 }
