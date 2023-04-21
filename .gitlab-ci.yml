@@ -46,8 +46,7 @@ include:
 # when you want to link to specific artifacts...
 
 lint:
-  image:  ${BASE_REGISTRY}/ssf-tools/golangci-lint:v1.52.2
-  # registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
+  image:  ${BASE_REGISTRY}/${REPOSITORY}-release/golangci-lint:v1.52.2
   stage: lint
   script:
     # Use default .golangci.yml file from the image if one is not present in the project root.
@@ -119,7 +118,7 @@ gotest:
   - |
     /kaniko/executor --context $CI_PROJECT_DIR \
     --dockerfile Dockerfile \
-    --destination $CONTAINER_REGISTRY/ssf-tools/$CI_PROJECT_NAME:$IMAGE_TAG \
+    --destination $CONTAINER_REGISTRY/$REPOSITORY/$CI_PROJECT_NAME:$IMAGE_TAG \
     --build-arg TARGETOS=linux \
     --build-arg TARGETARCH=amd64 \
     --label COMMIT_SHA=$CI_COMMIT_SHA \
@@ -145,6 +144,11 @@ build:
       EOF
     - export VERSION=$(cat _version.txt)
     - export IMAGE_TAG=$(echo $VERSION | sed 's/+/-build./g' || exit 1)
+    - |
+    # if merge to default branch or release branch, append release to REPOSITORY
+      if [ "$CI_COMMIT_REF_NAME" = "$CI_DEFAULT_BRANCH" ] || [ "$CI_COMMIT_REF_NAME" = "release" ]; then
+        export REPOSITORY="${REPOSITORY}-release"
+      fi
   script:
     - *kaniko-build
   # only:
