@@ -4,4 +4,4 @@ bin/
 .scannerwork
 reports/
 testdata/
-_version.txt
+# _version.txt

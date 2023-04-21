@@ -40,28 +40,114 @@ func parseError(line int, err error) error {
 	}
 }
 
+func getBranch(b string, isMr bool) (string, error) {
+	/*
+		- if: "$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH"
+		- if: '$CI_COMMIT_BRANCH == "dev"'
+		- if: '$CI_COMMIT_BRANCH == "develop"'
+		- if: "$CI_COMMIT_BRANCH =~ /^RC/"
+	*/
+	// if branch is one of the above return
+	// convert branch to lowercase
+	if cfg.Debug {
+		log.Printf("Branch: %+v\n", b)
+	}
+	branches := strings.Split(strings.ToLower(b), "/")
+	switch branches[0] {
+	case cfg.Variables.DefaultBranch, "dev", "develop":
+		return branches[0], nil
+	case "rc":
+		return fmt.Sprintf("rc-%s", branches[1]), nil
+	default:
+		if isMr {
+			return fmt.Sprintf("mr-%d", cfg.Variables.MergeRequestIid), nil
+		}
+		if cfg.Variables.CommitBranch == "" {
+			return "", fmt.Errorf("commit branch is empty")
+		}
+		return cfg.Variables.CommitBranch, nil
+	}
+}
+
+/*
+	- if: "$CI_COMMIT_BRANCH =~ /^Release/"
+	- if: "$CI_COMMIT_BRANCH =~ /^release/"
+*/
+
+func getTargetBranch() string {
+	/*
+			Need to distinguish between a branch build and a merge request build
+			- if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+		    - if: $CI_PIPELINE_SOURCE == 'web'
+		    - if: $CI_PIPELINE_SOURCE == 'trigger'
+		    - if: $CI_PIPELINE_SOURCE == 'pipeline'
+	*/
+	var tb string
+	if cfg.Debug {
+		log.Printf("PipelineSource: %+v\n", cfg.Variables.PipelineSource)
+	}
+	var err error
+	switch cfg.Variables.PipelineSource {
+	case "merge_request_event":
+		if cfg.Debug {
+			log.Println("merge request build")
+		}
+		tb, err = getBranch(cfg.Variables.MergeRequestTargetBranchName, true)
+		if err != nil {
+			log.Fatalf("error getting target branch: %v", err)
+		}
+	case "web", "trigger", "pipeline":
+		if cfg.Debug {
+			log.Println("pipeline build")
+		}
+		tb, err = getBranch(cfg.Variables.CommitBranch, false)
+		if err != nil {
+			log.Fatalf("error getting target branch: %v", err)
+		}
+	case "push":
+		if cfg.Debug {
+			log.Printf("push build, commit branch: %s\n", cfg.Variables.CommitBranch)
+		}
+		tb, err = getBranch(cfg.Variables.CommitBranch, false)
+		if err != nil {
+			log.Fatalf("error getting target branch: %v", err)
+		}
+	default:
+		if cfg.Debug {
+			log.Println("branch build")
+		}
+		tb, err = getBranch(cfg.Variables.CommitBranch, false)
+		if err != nil {
+			log.Fatalf("error getting target branch: %v", err)
+		}
+	}
+	// replace / with -
+	tb = strings.ReplaceAll(tb, "/", "-")
+	return tb
+}
+
+func isReleaseBranch() bool {
+	// cfg.Variables.DefaultBranch || strings.Contains(strings.ToLower(tb), "release"
+	return (strings.Contains(strings.ToLower(cfg.Variables.MergeRequestTargetBranchName), "release") ||
+		strings.Contains(strings.ToLower(cfg.Variables.CommitBranch), "release"))
+}
+
 func (v *Version) String() string {
 	// 1. construct base version string
 	base := fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
-	// split MergeRequestTargetBranchName on /
-	targetBranch := strings.Split(strings.ToLower(cfg.Variables.MergeRequestTargetBranchName), "/")
-	// TODO: handle error when unable to split?
-	var tb string
-	if len(targetBranch) == 1 {
-		tb = targetBranch[0]
-	} else if len(targetBranch) == 2 {
-		tb = fmt.Sprintf("%s-%s", targetBranch[0], targetBranch[1])
-	}
-	if cfg.Debug {
-		log.Printf("targetBranch: %s\n", targetBranch)
-	}
+
 	// 2. if on defalt or release branch return version string
-	if tb == cfg.Variables.DefaultBranch || strings.Contains(tb, "release") {
+	if isReleaseBranch() {
 		return fmt.Sprintf("v%s", base)
-	} else {
-		// 3. if target branch is not default branch, append branch to base
-		base = fmt.Sprintf("%s-%s", base, tb)
 	}
+	// split MergeRequestTargetBranchName on /
+	tb := getTargetBranch()
+	if cfg.Debug {
+		log.Printf("targetBranch: %s\n", tb)
+	}
+
+	// 3. if target branch is not default branch, append branch to base
+	base = fmt.Sprintf("%s-%s", base, tb)
 	// 4. check if we need to append additional options
 	if v.Additional != "" {
 		base = fmt.Sprintf("%s-%s", base, v.Additional)
@@ -87,7 +173,9 @@ func GetVersion(c *config.Config) string {
 
 	// read VERSION file
 	if cfg.VersionFile == "" {
-		log.Println("GetVersion | No version file specified, using default version file")
+		if cfg.Debug {
+			log.Println("GetVersion | No version file specified, using default version file")
+		}
 		cfg.VersionFile = "VERSION"
 	}
 	r, err := ReadFile(cfg.VersionFile)
@@ -138,7 +226,7 @@ func GetVersion(c *config.Config) string {
 	} else {
 		vr.Patch = i
 	}
-	if env["ADDOPTS"] != "" && strings.Contains(env["ADDOPTS"], "#") {
+	if env["ADDOPTS"] != "" && !strings.Contains(env["ADDOPTS"], "#") {
 		vr.Additional = env["ADDOPTS"]
 	}
 	return vr.String()

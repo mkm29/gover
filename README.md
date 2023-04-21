@@ -32,20 +32,37 @@ ADDOPTS=<additional_options>
 
 All relevant commands are listed and annotated in the [Makefile](Makefile).
 
+```bash
+gover version -h
+All software has versions. This is gover's
+
+Usage:
+  gover version [flags]
+
+Flags:
+  -h, --help            help for version
+  -o, --output string   Output file
+
+Global Flags:
+  -d, --debug   Enable debug output
+```
+
 This program is intended to run inside a CI/CD pipeline (in a container), but can also be run locally. Note that when running any pipeline in Gitlab, these [variables](https://docs.gitlab.com/ee/ci/variables/predefined_variables.html) are automatically added to any stage(kmage). Here are the commands:
 
 ```bash
-./bin/gover version
+gover version
 ```
 
 Example output/versions: 
 
 ```bash
 # merge request to development branch
-0.1.0-development+55358
-0.1.1-development-alpha.1+55359
+0.1.0-mr-6+81
+0.1.1-development-alpha.1+83
 # merge request to rc/* branch
-0.1.2-rc-8.2.0+55360
+0.1.2-rc-8.2.0+84
+# branch build
+0.1.2-4-update-versioning-for-branch-builds-alpha.3+85
 # merge request to release branch (official release)
 v0.1.3
 ```
