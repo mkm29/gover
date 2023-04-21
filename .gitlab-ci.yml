@@ -145,7 +145,6 @@ build:
     - export VERSION=$(cat _version.txt)
     - export IMAGE_TAG=$(echo $VERSION | sed 's/+/-build./g' || exit 1)
     - |
-    # if merge to default branch or release branch, append release to REPOSITORY
       if [ "$CI_COMMIT_REF_NAME" = "$CI_DEFAULT_BRANCH" ] || [ "$CI_COMMIT_REF_NAME" = "release" ]; then
         export REPOSITORY="${REPOSITORY}-release"
       fi
