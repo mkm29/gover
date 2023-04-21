@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"gover/pkg/config"
+	"gover/internal/config"
 	"log"
 	"strconv"
 	"strings"

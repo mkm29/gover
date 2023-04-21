@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"gover/internal/config"
 	"gover/internal/utils"
-	"gover/pkg/config"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -30,6 +30,23 @@ var (
 		Use:   "version",
 		Short: "Print the version number of gover",
 		Long:  `All software has versions. This is gover's`,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// call parent PersistentPreRunE
+			if err := cmd.Parent().PersistentPreRunE(cmd, args); err != nil {
+				return err
+			}
+			// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
+			if cfg != nil {
+				if output != "" {
+					cfg.Output = output
+				} else {
+					cfg.Output = "_version.txt"
+				}
+			} else {
+				return fmt.Errorf("config is nil")
+			}
+			return nil
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			// Working with OutOrStdout/OutOrStderr allows us to unit test our command easier
 			out := cmd.OutOrStdout()

@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"gover/pkg/config"
+	"gover/internal/config"
 	"os"
 	fp "path"
 )
@@ -13,12 +13,6 @@ const (
 	OsReadWrite = 0600
 	OsAll       = 0777
 )
-
-// const (
-// 	OS_READ_ONLY  = 0400
-// 	OS_WRITE_ONLY = 0200
-// 	OS_READ_WRITE = 0600
-// )
 
 func ReadFile(path string) ([]byte, error) {
 	// read file
