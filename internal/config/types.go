@@ -1,10 +1,14 @@
 package config
 
 type Config struct {
-	VersionFile, Output string
-	Variables           *Variables
-	Debug               bool
-	requiredVars        map[string]string
+	VersionFile, Output    string
+	Variables              *Variables
+	VariablesPath          string
+	Debug                  bool
+	requiredVars           map[string]string
+	IncludeGroupVariables  bool
+	KeysOnly               bool
+	ImportMissingVariables bool
 }
 
 type Variables struct {
@@ -73,8 +77,6 @@ type Variables struct {
 	PagesURL                              string `mapstructure:"CI_PAGES_URL"`
 	PipelineID                            int    `mapstructure:"CI_PIPELINE_ID"`
 	PipelineIid                           int    `mapstructure:"CI_PIPELINE_IID"`
-	PipelineSource                        string `mapstructure:"CI_PIPELINE_SOURCE"`
-	PipelineTriggered                     bool   `mapstructure:"CI_PIPELINE_TRIGGERED"`
 	PipelineURL                           string `mapstructure:"CI_PIPELINE_URL"`
 	PipelineCreatedAt                     string `mapstructure:"CI_PIPELINE_CREATED_AT"`
 	ProjectDir                            string `mapstructure:"CI_PROJECT_DIR"`
@@ -141,6 +143,9 @@ type Variables struct {
 	MergeRequestSourceProjectPath         string `mapstructure:"CI_MERGE_REQUEST_SOURCE_PROJECT_PATH"`
 	MergeRequestSourceProjectURL          string `mapstructure:"CI_MERGE_REQUEST_SOURCE_PROJECT_URL"`
 	MergeRequestTargetBranchName          string `mapstructure:"CI_MERGE_REQUEST_TARGET_BRANCH_NAME"`
+	Source                                string `mapstructure:"CI_PIPELINE_SOURCE"`
+	PipelineSource                        string `mapstructure:"CI_PIPELINE_SOURCE"`
+	PipelineTriggered                     bool   `mapstructure:"CI_PIPELINE_TRIGGERED"`
 	MergeRequestTargetBranchProtected     bool   `mapstructure:"CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED"`
 	MergeRequestTargetBranchSha           string `mapstructure:"CI_MERGE_REQUEST_TARGET_BRANCH_SHA"`
 	MergeRequestTitle                     string `mapstructure:"CI_MERGE_REQUEST_TITLE"`

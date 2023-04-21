@@ -11,10 +11,14 @@ var cfg *Config
 
 func Init() {
 	cfg = &Config{
+		// TODO: look and see which variables are truly required
 		requiredVars: map[string]string{
 			"CI_DEFAULT_BRANCH":                   "DefaultBranch",
 			"CI_MERGE_REQUEST_TARGET_BRANCH_NAME": "MergeRequestTargetBranchName",
 			"CI_PIPELINE_IID":                     "PipelineIid",
+			"CI_PIPELINE_SOURCE":                  "PipelineSource",
+			"CI_COMMIT_BRANCH":                    "CommitBranch",
+			"CI_PIPELINE_TRIGGERED":               "PipelineTriggered",
 		},
 		Debug: false,
 	}
@@ -35,7 +39,7 @@ func LoadConfig(args ...string) (config *Config, err error) {
 	}
 	v.AutomaticEnv()
 	if len(args) == 0 {
-		for ev := range cfg.requiredVars {
+		for _, ev := range AllVariables {
 			if err := v.BindEnv(ev); err != nil {
 				return nil, err
 			}

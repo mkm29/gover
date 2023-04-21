@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"gover/internal/config"
 	"gover/internal/utils"
-	"gover/pkg/config"
 	"log"
 
 	"github.com/spf13/cobra"
